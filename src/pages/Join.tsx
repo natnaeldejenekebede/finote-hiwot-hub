@@ -6,12 +6,24 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
+import { z } from "zod";
 
-const steps = ["Personal Info", "Church Info", "Confirmation"];
+const steps = ["Personal Info", "Spiritual Background", "Department Selection"];
+
+const memberSchema = z.object({
+  fullName: z.string().trim().min(2, "Name must be at least 2 characters").max(100),
+  christianName: z.string().trim().max(100).optional(),
+  phone: z.string().trim().min(9, "Phone number is too short").max(15),
+  age: z.string().refine((v) => !isNaN(Number(v)) && Number(v) > 0 && Number(v) < 120, "Invalid age"),
+  department: z.string().min(1, "Please select a department"),
+  baptismalFather: z.string().trim().max(100).optional(),
+});
 
 const Join = () => {
   const [step, setStep] = useState(0);
+  const [submitting, setSubmitting] = useState(false);
   const [form, setForm] = useState({
     fullName: "",
     christianName: "",
@@ -23,13 +35,34 @@ const Join = () => {
 
   const update = (field: string, value: string) => setForm({ ...form, [field]: value });
 
-  const handleSubmit = () => {
-    toast({
-      title: "Registration Submitted! ✦",
-      description: "Thank you for joining Finote Hiwot Sunday School. We will contact you soon.",
+  const handleSubmit = async () => {
+    const result = memberSchema.safeParse(form);
+    if (!result.success) {
+      toast({ title: "Validation Error", description: result.error.errors[0].message, variant: "destructive" });
+      return;
+    }
+
+    setSubmitting(true);
+    const { error } = await supabase.from("members").insert({
+      full_name: form.fullName,
+      christian_name: form.christianName || null,
+      phone: form.phone,
+      age: parseInt(form.age),
+      department: form.department,
+      baptismal_father: form.baptismalFather || null,
     });
-    setStep(0);
-    setForm({ fullName: "", christianName: "", phone: "", age: "", department: "", baptismalFather: "" });
+
+    if (error) {
+      toast({ title: "Error", description: "Failed to submit registration.", variant: "destructive" });
+    } else {
+      toast({
+        title: "Registration Submitted! ✦",
+        description: "Thank you for joining Finote Hiwot Sunday School. We will contact you soon.",
+      });
+      setStep(0);
+      setForm({ fullName: "", christianName: "", phone: "", age: "", department: "", baptismalFather: "" });
+    }
+    setSubmitting(false);
   };
 
   return (
@@ -70,10 +103,6 @@ const Join = () => {
                     <Input id="fullName" value={form.fullName} onChange={(e) => update("fullName", e.target.value)} placeholder="Enter your full name" className="mt-1" />
                   </div>
                   <div>
-                    <Label htmlFor="christianName" className="font-body">Christian Name / የክርስትና ስም</Label>
-                    <Input id="christianName" value={form.christianName} onChange={(e) => update("christianName", e.target.value)} placeholder="Enter your christian name" className="mt-1" />
-                  </div>
-                  <div>
                     <Label htmlFor="phone" className="font-body">Phone Number</Label>
                     <Input id="phone" value={form.phone} onChange={(e) => update("phone", e.target.value)} placeholder="+251 ..." className="mt-1" />
                   </div>
@@ -88,16 +117,8 @@ const Join = () => {
               {step === 1 && (
                 <div className="space-y-4">
                   <div>
-                    <Label className="font-body">Department / ክፍል</Label>
-                    <Select value={form.department} onValueChange={(v) => update("department", v)}>
-                      <SelectTrigger className="mt-1"><SelectValue placeholder="Select department" /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="education">Education / ትምህርት</SelectItem>
-                        <SelectItem value="choir">Choir / መዝሙር</SelectItem>
-                        <SelectItem value="service">Service / አገልግሎት</SelectItem>
-                        <SelectItem value="finance">Finance / ገንዘብ</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    <Label htmlFor="christianName" className="font-body">Christian Name / የክርስትና ስም</Label>
+                    <Input id="christianName" value={form.christianName} onChange={(e) => update("christianName", e.target.value)} placeholder="Enter your christian name" className="mt-1" />
                   </div>
                   <div>
                     <Label htmlFor="baptismalFather" className="font-body">Baptismal Father / የክርስትና አባት</Label>
@@ -112,15 +133,28 @@ const Join = () => {
 
               {step === 2 && (
                 <div className="space-y-4">
-                  <h3 className="font-display text-xl font-bold text-foreground">Confirm Your Details</h3>
+                  <div>
+                    <Label className="font-body">Department / ክፍል</Label>
+                    <Select value={form.department} onValueChange={(v) => update("department", v)}>
+                      <SelectTrigger className="mt-1"><SelectValue placeholder="Select department" /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="education">Education / ትምህርት</SelectItem>
+                        <SelectItem value="choir">Choir / መዝሙር</SelectItem>
+                        <SelectItem value="service">Service / አገልግሎት</SelectItem>
+                        <SelectItem value="finance">Finance / ገንዘብ</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <h3 className="font-display text-lg font-bold text-foreground mt-6">Confirm Your Details</h3>
                   <div className="space-y-2 text-sm font-body">
                     {[
                       ["Full Name", form.fullName],
-                      ["Christian Name", form.christianName],
                       ["Phone", form.phone],
                       ["Age", form.age],
-                      ["Department", form.department],
+                      ["Christian Name", form.christianName],
                       ["Baptismal Father", form.baptismalFather],
+                      ["Department", form.department],
                     ].map(([label, value]) => (
                       <div key={label} className="flex justify-between py-2 border-b border-border">
                         <span className="text-muted-foreground">{label}</span>
@@ -130,7 +164,9 @@ const Join = () => {
                   </div>
                   <div className="flex gap-3">
                     <Button variant="outline" onClick={() => setStep(1)} className="flex-1">Back</Button>
-                    <Button onClick={handleSubmit} className="flex-1">Submit Registration</Button>
+                    <Button onClick={handleSubmit} disabled={submitting} className="flex-1">
+                      {submitting ? "Submitting..." : "Submit Registration"}
+                    </Button>
                   </div>
                 </div>
               )}

@@ -3,18 +3,24 @@ import { Link, useLocation } from "react-router-dom";
 import { Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
-
-const navLinks = [
-  { path: "/", label: "Home" },
-  { path: "/about", label: "About" },
-  { path: "/events", label: "Events" },
-  { path: "/media", label: "Media" },
-  { path: "/give", label: "Donations" },
-];
+import ThemeToggle from "@/components/ThemeToggle";
+import LanguageToggle from "@/components/LanguageToggle";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const Header = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const location = useLocation();
+  const { t } = useLanguage();
+
+  const navLinks = [
+    { path: "/", label: t("home") },
+    { path: "/about", label: t("about") },
+    { path: "/education", label: t("education") },
+    { path: "/events", label: t("events") },
+    { path: "/media", label: t("media") },
+    { path: "/give", label: t("donations") },
+    { path: "/prayer", label: t("prayer") },
+  ];
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-card/90 backdrop-blur-md border-b border-border">
@@ -22,13 +28,13 @@ const Header = () => {
         <Link to="/" className="flex items-center gap-3">
           <span className="text-2xl font-display font-bold text-primary">✦</span>
           <div className="leading-tight">
-            <span className="font-display font-bold text-foreground text-lg">ፍኖተ ሕይወት</span>
+            <span className="font-ethiopic font-bold text-foreground text-lg">ፍኖተ ሕይወት</span>
             <span className="block text-xs text-muted-foreground font-body">Finote Hiwot Sunday School</span>
           </div>
         </Link>
 
         {/* Desktop nav */}
-        <nav className="hidden md:flex items-center gap-1">
+        <nav className="hidden lg:flex items-center gap-1">
           {navLinks.map((link) => (
             <Link
               key={link.path}
@@ -42,19 +48,27 @@ const Header = () => {
               {link.label}
             </Link>
           ))}
-          <Link to="/join">
-            <Button size="sm" className="ml-2">Join Us</Button>
-          </Link>
+          <div className="flex items-center gap-1 ml-2 border-l border-border pl-2">
+            <LanguageToggle />
+            <ThemeToggle />
+            <Link to="/join">
+              <Button size="sm">{t("join")}</Button>
+            </Link>
+          </div>
         </nav>
 
         {/* Mobile toggle */}
-        <button
-          className="md:hidden p-2 text-foreground"
-          onClick={() => setMobileOpen(!mobileOpen)}
-          aria-label="Toggle menu"
-        >
-          {mobileOpen ? <X size={24} /> : <Menu size={24} />}
-        </button>
+        <div className="flex items-center gap-2 lg:hidden">
+          <LanguageToggle />
+          <ThemeToggle />
+          <button
+            className="p-2 text-foreground"
+            onClick={() => setMobileOpen(!mobileOpen)}
+            aria-label="Toggle menu"
+          >
+            {mobileOpen ? <X size={24} /> : <Menu size={24} />}
+          </button>
+        </div>
       </div>
 
       {/* Mobile nav */}
@@ -64,7 +78,7 @@ const Header = () => {
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
-            className="md:hidden overflow-hidden bg-card border-b border-border"
+            className="lg:hidden overflow-hidden bg-card border-b border-border"
           >
             <div className="px-4 py-4 space-y-1">
               {navLinks.map((link) => (
@@ -82,7 +96,7 @@ const Header = () => {
                 </Link>
               ))}
               <Link to="/join" onClick={() => setMobileOpen(false)}>
-                <Button size="sm" className="w-full mt-2">Join Us</Button>
+                <Button size="sm" className="w-full mt-2">{t("join")}</Button>
               </Link>
             </div>
           </motion.nav>
