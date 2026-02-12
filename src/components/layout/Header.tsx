@@ -1,25 +1,44 @@
-import { useState } from "react";
-import { Link, useLocation } from "react-router-dom";
-import { Menu, X } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Menu, X, LogOut, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
 import ThemeToggle from "@/components/ThemeToggle";
 import LanguageToggle from "@/components/LanguageToggle";
-import { useLanguage } from "@/contexts/LanguageContext";
+import { useTranslation } from "react-i18next";
+import { supabase } from "@/integrations/supabase/client";
 
 const Header = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [user, setUser] = useState<any>(null);
   const location = useLocation();
-  const { t } = useLanguage();
+  const navigate = useNavigate();
+  const { t } = useTranslation();
+
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+    });
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
+    });
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    setUser(null);
+    navigate("/");
+  };
 
   const navLinks = [
-    { path: "/", label: t("home") },
-    { path: "/about", label: t("about") },
-    { path: "/education", label: t("education") },
-    { path: "/events", label: t("events") },
-    { path: "/media", label: t("media") },
-    { path: "/give", label: t("donations") },
-    { path: "/prayer", label: t("prayer") },
+    { path: "/", label: t("nav.home") },
+    { path: "/about", label: t("nav.about") },
+    { path: "/education", label: t("nav.education") },
+    { path: "/events", label: t("nav.events") },
+    { path: "/media", label: t("nav.media") },
+    { path: "/give", label: t("nav.donations") },
+    { path: "/prayer", label: t("nav.prayer") },
   ];
 
   return (
@@ -51,9 +70,25 @@ const Header = () => {
           <div className="flex items-center gap-1 ml-2 border-l border-border pl-2">
             <LanguageToggle />
             <ThemeToggle />
-            <Link to="/join">
-              <Button size="sm">{t("join")}</Button>
-            </Link>
+            {user ? (
+              <>
+                <Link to="/profile">
+                  <Button size="sm" variant="ghost"><User className="w-4 h-4" /></Button>
+                </Link>
+                <Button size="sm" variant="ghost" onClick={handleLogout}>
+                  <LogOut className="w-4 h-4" />
+                </Button>
+              </>
+            ) : (
+              <>
+                <Link to="/auth">
+                  <Button size="sm" variant="ghost">{t("nav.login")}</Button>
+                </Link>
+                <Link to="/join">
+                  <Button size="sm">{t("nav.join")}</Button>
+                </Link>
+              </>
+            )}
           </div>
         </nav>
 
@@ -95,9 +130,27 @@ const Header = () => {
                   {link.label}
                 </Link>
               ))}
-              <Link to="/join" onClick={() => setMobileOpen(false)}>
-                <Button size="sm" className="w-full mt-2">{t("join")}</Button>
-              </Link>
+              {user ? (
+                <>
+                  <Link to="/profile" onClick={() => setMobileOpen(false)}>
+                    <Button size="sm" variant="ghost" className="w-full mt-2 justify-start gap-2">
+                      <User className="w-4 h-4" /> {t("nav.profile")}
+                    </Button>
+                  </Link>
+                  <Button size="sm" variant="ghost" onClick={() => { handleLogout(); setMobileOpen(false); }} className="w-full justify-start gap-2">
+                    <LogOut className="w-4 h-4" /> {t("nav.logout")}
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <Link to="/auth" onClick={() => setMobileOpen(false)}>
+                    <Button size="sm" variant="ghost" className="w-full mt-2">{t("nav.login")}</Button>
+                  </Link>
+                  <Link to="/join" onClick={() => setMobileOpen(false)}>
+                    <Button size="sm" className="w-full mt-1">{t("nav.join")}</Button>
+                  </Link>
+                </>
+              )}
             </div>
           </motion.nav>
         )}

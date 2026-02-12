@@ -1,21 +1,35 @@
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
-import { Calendar, BookOpen, Users, Heart } from "lucide-react";
+import { Calendar, BookOpen, Users, Heart, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Layout from "@/components/layout/Layout";
 import SectionHeading from "@/components/SectionHeading";
 import EthiopianCross from "@/components/EthiopianCross";
 import heroBg from "@/assets/hero-bg.jpg";
+import { useTranslation } from "react-i18next";
+import { useMemo } from "react";
 
-const dailyScripture = {
-  verse: "\"I am the way, the truth, and the life. No one comes to the Father except through Me.\"",
-  reference: "John 14:6",
-};
+const dailyWisdomVerses = [
+  { verse: "\"I am the way, the truth, and the life. No one comes to the Father except through Me.\"", verseAm: "\"መንገዱና እውነቱና ሕይወቱ እኔ ነኝ፤ በእኔ በቀር ወደ አብ የሚመጣ የለም።\"", ref: "John 14:6 / ዮሐ 14:6" },
+  { verse: "\"Be strong and courageous. Do not be afraid; do not be discouraged, for the Lord your God will be with you wherever you go.\"", verseAm: "\"ጠንክር ጽና፤ አትፍራ አትደንግጥ፤ አምላክህ እግዚአብሔር በምትሄድበት ሁሉ ከአንተ ጋር ነውና።\"", ref: "Joshua 1:9 / ኢያ 1:9" },
+  { verse: "\"Trust in the Lord with all your heart and lean not on your own understanding.\"", verseAm: "\"በፍጹም ልብህ በእግዚአብሔር ታመን፤ በራስህ ማስተዋልም አትደገፍ።\"", ref: "Proverbs 3:5 / ምሳ 3:5" },
+  { verse: "\"The Lord is my shepherd, I lack nothing.\"", verseAm: "\"እግዚአብሔር እረኛዬ ነው፤ የሚያሳጣኝ የለም።\"", ref: "Psalm 23:1 / መዝ 23:1" },
+  { verse: "\"For God so loved the world that he gave his one and only Son.\"", verseAm: "\"እግዚአብሔር ዓለሙን እንዲሁ ወዶአልና አንድያ ልጁን ሰጠ።\"", ref: "John 3:16 / ዮሐ 3:16" },
+  { verse: "\"Come to me, all you who are weary and burdened, and I will give you rest.\"", verseAm: "\"እናንት ደካሞች ሸክም የከበዳችሁ ሁሉ ወደ እኔ ኑ፤ እኔም አሳርፋችኋለሁ።\"", ref: "Matthew 11:28 / ማቴ 11:28" },
+  { verse: "\"I can do all things through Christ who strengthens me.\"", verseAm: "\"በሚያበረታኝ በክርስቶስ ሁሉን እችላለሁ።\"", ref: "Philippians 4:13 / ፊል 4:13" },
+];
 
-const upcomingFeast = {
-  name: "Feast of St. Gabriel",
-  date: new Date("2026-03-28"),
-};
+const upcomingFeasts = [
+  { name: "Feast of St. Gabriel", nameAm: "የቅዱስ ገብርኤል በዓል", date: new Date("2026-03-28") },
+  { name: "Meskel", nameAm: "መስቀል", date: new Date("2026-09-27") },
+  { name: "Ledet (Christmas)", nameAm: "ልደት", date: new Date("2027-01-07") },
+  { name: "Timket (Epiphany)", nameAm: "ጥምቀት", date: new Date("2027-01-19") },
+];
+
+function getNextFeast() {
+  const now = new Date();
+  return upcomingFeasts.find(f => f.date > now) || upcomingFeasts[0];
+}
 
 function getCountdown(target: Date) {
   const now = new Date();
@@ -27,24 +41,30 @@ function getCountdown(target: Date) {
   };
 }
 
-const features = [
-  { icon: BookOpen, title: "Spiritual Education", desc: "Dogma, Canon, and Ethics courses for all ages.", link: "/about" },
-  { icon: Calendar, title: "Events & Calendar", desc: "Weekly classes and annual festivals.", link: "/events" },
-  { icon: Users, title: "Fellowship", desc: "Join a vibrant community of believers.", link: "/join" },
-  { icon: Heart, title: "Support Our Mission", desc: "Contribute to ongoing church projects.", link: "/give" },
-];
+function getDailyVerse(lang: string) {
+  const dayOfYear = Math.floor((Date.now() - new Date(new Date().getFullYear(), 0, 0).getTime()) / (1000 * 60 * 60 * 24));
+  const v = dailyWisdomVerses[dayOfYear % dailyWisdomVerses.length];
+  return { verse: lang === "am" ? v.verseAm : v.verse, ref: v.ref };
+}
 
 const Index = () => {
-  const countdown = getCountdown(upcomingFeast.date);
+  const { t, i18n } = useTranslation();
+  const feast = getNextFeast();
+  const countdown = getCountdown(feast.date);
+  const wisdom = useMemo(() => getDailyVerse(i18n.language), [i18n.language]);
+
+  const features = [
+    { icon: BookOpen, title: t("home.spiritualEd"), desc: t("home.spiritualEdDesc"), link: "/about" },
+    { icon: Calendar, title: t("home.eventsCalendar"), desc: t("home.eventsCalendarDesc"), link: "/events" },
+    { icon: Users, title: t("home.fellowship"), desc: t("home.fellowshipDesc"), link: "/join" },
+    { icon: Heart, title: t("home.supportMission"), desc: t("home.supportMissionDesc"), link: "/give" },
+  ];
 
   return (
     <Layout>
       {/* Hero */}
       <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden">
-        <div
-          className="absolute inset-0 bg-cover bg-center"
-          style={{ backgroundImage: `url(${heroBg})` }}
-        />
+        <div className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: `url(${heroBg})` }} />
         <div className="absolute inset-0 bg-gradient-to-b from-foreground/70 via-foreground/50 to-foreground/80" />
         <div className="absolute inset-0 ethiopian-pattern opacity-30" />
 
@@ -56,30 +76,30 @@ const Index = () => {
         >
           <EthiopianCross className="w-12 h-12 text-gold mx-auto mb-6" />
           <h1 className="font-display text-5xl md:text-7xl font-bold text-primary-foreground mb-2">
-            ፍኖተ ሕይወት
+            {t("home.schoolName")}
           </h1>
           <p className="font-display text-xl md:text-2xl text-gold-glow mb-2">
-            Finote Hiwot Sunday School
+            {t("home.schoolSubtitle")}
           </p>
           <p className="text-primary-foreground/70 text-sm font-body mb-8">
-            EOTC Hossana Debre Mihret Cathedral
+            {t("home.cathedral")}
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-10">
             <Link to="/join">
-              <Button variant="hero" size="lg">Become a Member</Button>
+              <Button variant="hero" size="lg">{t("home.becomeMember")}</Button>
             </Link>
             <Link to="/about">
-              <Button variant="hero-outline" size="lg">Learn More</Button>
+              <Button variant="hero-outline" size="lg">{t("home.learnMore")}</Button>
             </Link>
           </div>
 
           {/* Scripture */}
           <div className="bg-foreground/30 backdrop-blur-sm rounded-lg p-6 border border-primary-foreground/10 max-w-xl mx-auto">
             <p className="font-display text-primary-foreground/90 italic text-lg mb-2">
-              {dailyScripture.verse}
+              {wisdom.verse}
             </p>
-            <p className="text-gold text-sm font-body font-semibold">— {dailyScripture.reference}</p>
+            <p className="text-gold text-sm font-body font-semibold">— {wisdom.ref}</p>
           </div>
         </motion.div>
       </section>
@@ -89,25 +109,46 @@ const Index = () => {
         <div className="container mx-auto px-4 flex flex-col sm:flex-row items-center justify-center gap-4 text-center">
           <EthiopianCross className="w-5 h-5 text-gold" />
           <p className="text-secondary-foreground font-body text-sm">
-            <span className="font-semibold text-gold">{upcomingFeast.name}</span> in{" "}
-            <span className="font-bold text-lg text-secondary-foreground">{countdown.days}</span> days,{" "}
-            <span className="font-bold text-lg text-secondary-foreground">{countdown.hours}</span> hours
+            <span className="font-semibold text-gold">{i18n.language === "am" ? feast.nameAm : feast.name}</span>{" "}
+            {t("home.feastIn")}{" "}
+            <span className="font-bold text-lg text-secondary-foreground">{countdown.days}</span> {t("home.days")},{" "}
+            <span className="font-bold text-lg text-secondary-foreground">{countdown.hours}</span> {t("home.hours")}
           </p>
           <EthiopianCross className="w-5 h-5 text-gold hidden sm:block" />
+        </div>
+      </section>
+
+      {/* Daily Wisdom */}
+      <section className="py-12 bg-gradient-to-r from-primary/5 to-secondary/5">
+        <div className="container mx-auto px-4">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="max-w-2xl mx-auto text-center"
+          >
+            <div className="flex items-center justify-center gap-3 mb-4">
+              <Sparkles className="w-6 h-6 text-primary" />
+              <h2 className="font-display text-2xl font-bold text-foreground">{t("home.dailyWisdom")}</h2>
+              <Sparkles className="w-6 h-6 text-primary" />
+            </div>
+            <p className="text-muted-foreground font-body text-sm mb-4">{t("home.dailyWisdomSubtitle")}</p>
+            <div className="bg-card rounded-xl border border-border p-8">
+              <p className="font-display text-foreground italic text-xl leading-relaxed mb-3">{wisdom.verse}</p>
+              <p className="text-primary text-sm font-body font-semibold">— {wisdom.ref}</p>
+            </div>
+          </motion.div>
         </div>
       </section>
 
       {/* Features */}
       <section className="py-20 ethiopian-pattern">
         <div className="container mx-auto px-4">
-          <SectionHeading
-            title="Our Pillars"
-            subtitle="Rooted in the ancient traditions of the Ethiopian Orthodox Tewahedo Church"
-          />
+          <SectionHeading title={t("home.pillarsTitle")} subtitle={t("home.pillarsSubtitle")} />
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {features.map((f, i) => (
               <motion.div
-                key={f.title}
+                key={i}
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
@@ -133,13 +174,13 @@ const Index = () => {
       <section className="py-16 gradient-gold text-center">
         <div className="container mx-auto px-4">
           <h2 className="font-display text-3xl font-bold text-primary-foreground mb-4">
-            Walk the Path of Life With Us
+            {t("home.ctaTitle")}
           </h2>
           <p className="text-primary-foreground/80 font-body mb-8 max-w-lg mx-auto">
-            Register today and become part of a community devoted to spiritual growth and service.
+            {t("home.ctaDesc")}
           </p>
           <Link to="/join">
-            <Button variant="hero-outline" size="lg">Register Now</Button>
+            <Button variant="hero-outline" size="lg">{t("home.registerNow")}</Button>
           </Link>
         </div>
       </section>
