@@ -39,6 +39,7 @@ const Header = () => {
     { path: "/media", label: t("nav.media") },
     { path: "/give", label: t("nav.donations") },
     { path: "/prayer", label: t("nav.prayer") },
+    { path: "/qa", label: t("nav.qa") },
   ];
 
   return (

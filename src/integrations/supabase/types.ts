@@ -14,6 +14,36 @@ export type Database = {
   }
   public: {
     Tables: {
+      community_questions: {
+        Row: {
+          answer: string | null
+          created_at: string
+          id: string
+          question: string
+          status: string
+          updated_at: string
+          user_name: string | null
+        }
+        Insert: {
+          answer?: string | null
+          created_at?: string
+          id?: string
+          question: string
+          status?: string
+          updated_at?: string
+          user_name?: string | null
+        }
+        Update: {
+          answer?: string | null
+          created_at?: string
+          id?: string
+          question?: string
+          status?: string
+          updated_at?: string
+          user_name?: string | null
+        }
+        Relationships: []
+      }
       members: {
         Row: {
           age: number | null

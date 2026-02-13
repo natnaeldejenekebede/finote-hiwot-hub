@@ -14,7 +14,8 @@
     "admin": "አስተዳዳሪ",
     "login": "ግባ",
     "logout": "ውጣ",
-    "profile": "የኔ መገለጫ"
+    "profile": "የኔ መገለጫ",
+    "qa": "ጥያቄ እና መልስ"
   },
   "common": {
     "submit": "አቅርብ",
@@ -91,7 +92,8 @@
     "ethics": "ሥነ-ምግባር",
     "min": "ደቂቃ",
     "pdfUpload": "ፒዲኤፍ ስቀል",
-    "downloadPdf": "ፒዲኤፍ አውርድ"
+    "downloadPdf": "ፒዲኤፍ አውርድ",
+    "noArticles": "ጽሑፎች አልተገኙም። በቅርቡ ይመልከቱ!"
   },
   "events": {
     "title": "ዝግጅቶች እና የቀን መቁጠሪያ",
@@ -237,6 +239,7 @@
     "members": "አባላት",
     "prayers": "ጸሎቶች",
     "content": "ይዘት",
+    "qa": "ጥያቄ እና መልስ",
     "totalMembers": "ጠቅላላ አባላት",
     "pendingApprovals": "በመጠባበቅ ላይ ያሉ",
     "prayerRequests": "የጸሎት ጥያቄዎች",
@@ -244,6 +247,7 @@
     "deptDist": "የክፍል ስርጭት",
     "noMembers": "እስካሁን አባላት የሉም።",
     "noPrayers": "እስካሁን የጸሎት ጥያቄዎች የሉም።",
+    "noQuestions": "እስካሁን ጥያቄዎች የሉም።",
     "name": "ስም",
     "christianName": "የክርስትና ስም",
     "departmentCol": "ክፍል",
@@ -256,7 +260,28 @@
     "articleTitle": "የጽሑፍ ርዕስ",
     "articleContent": "የጽሑፍ ይዘት",
     "createArticle": "ጽሑፍ ፍጠር",
-    "manageArticles": "ጽሑፎችን አስተዳድር"
+    "articleCreated": "ጽሑፍ ተፈጥሯል!",
+    "manageArticles": "ጽሑፎችን አስተዳድር",
+    "qaManagement": "የጥያቄ እና መልስ አስተዳደር",
+    "answerPublished": "መልስ ታትሟል!"
+  },
+  "qa": {
+    "title": "የማኅበረሰብ ጥያቄ እና መልስ",
+    "subtitle": "ጥያቄዎችን ያቅርቡ እና ከመምህሮቻችን መልስ ያግኙ",
+    "submitQuestion": "ጥያቄ ያቅርቡ",
+    "name": "ስም (አማራጭ)",
+    "namePlaceholder": "ስምዎ ወይም ባዶ ይተውት",
+    "questionLabel": "ጥያቄዎ",
+    "questionPlaceholder": "ጥያቄዎን እዚህ ይጻፉ...",
+    "submitBtn": "ጥያቄ አቅርብ",
+    "communityQuestions": "የማኅበረሰብ ጥያቄዎች",
+    "noQuestions": "እስካሁን ጥያቄዎች የሉም። የመጀመሪያው ጠያቂ ይሁኑ!",
+    "answered": "ተመልሷል",
+    "pending": "በሂደት ላይ",
+    "answerLabel": "መልስ",
+    "questionRequired": "እባክዎ ጥያቄዎን ያስገቡ።",
+    "submitted": "ጥያቄ ቀርቧል ✦",
+    "submittedDesc": "ጥያቄዎ ቀርቧል እና በቅርቡ ይመለሳል።"
   },
   "profile": {
     "title": "የኔ መገለጫ",
