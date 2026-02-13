@@ -14,7 +14,8 @@
     "admin": "Admin",
     "login": "Login",
     "logout": "Logout",
-    "profile": "My Profile"
+    "profile": "My Profile",
+    "qa": "Q&A"
   },
   "common": {
     "submit": "Submit",
@@ -91,7 +92,8 @@
     "ethics": "Ethics",
     "min": "min",
     "pdfUpload": "Upload PDF",
-    "downloadPdf": "Download PDF"
+    "downloadPdf": "Download PDF",
+    "noArticles": "No articles found. Check back soon!"
   },
   "events": {
     "title": "Events & Calendar",
@@ -237,6 +239,7 @@
     "members": "Members",
     "prayers": "Prayers",
     "content": "Content",
+    "qa": "Q&A",
     "totalMembers": "Total Members",
     "pendingApprovals": "Pending Approvals",
     "prayerRequests": "Prayer Requests",
@@ -244,6 +247,7 @@
     "deptDist": "Department Distribution",
     "noMembers": "No members yet.",
     "noPrayers": "No prayer requests yet.",
+    "noQuestions": "No questions yet.",
     "name": "Name",
     "christianName": "Christian Name",
     "departmentCol": "Department",
@@ -256,7 +260,28 @@
     "articleTitle": "Article Title",
     "articleContent": "Article Content",
     "createArticle": "Create Article",
-    "manageArticles": "Manage Articles"
+    "articleCreated": "Article created!",
+    "manageArticles": "Manage Articles",
+    "qaManagement": "Q&A Management",
+    "answerPublished": "Answer published!"
+  },
+  "qa": {
+    "title": "Community Q&A",
+    "subtitle": "Ask questions and get answers from our teachers",
+    "submitQuestion": "Submit a Question",
+    "name": "Name (Optional)",
+    "namePlaceholder": "Your name or leave blank",
+    "questionLabel": "Your Question",
+    "questionPlaceholder": "Type your question here...",
+    "submitBtn": "Submit Question",
+    "communityQuestions": "Community Questions",
+    "noQuestions": "No questions yet. Be the first to ask!",
+    "answered": "Answered / ተመልሷል",
+    "pending": "Pending / በሂደት ላይ",
+    "answerLabel": "Answer",
+    "questionRequired": "Please enter your question.",
+    "submitted": "Question Submitted ✦",
+    "submittedDesc": "Your question has been submitted and will be answered soon."
   },
   "profile": {
     "title": "My Profile",

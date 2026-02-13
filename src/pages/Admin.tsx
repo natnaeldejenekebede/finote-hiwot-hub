@@ -1,12 +1,12 @@
 import { useState, useEffect } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import Layout from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Users, BookOpen, MessageSquare, BarChart3, Check, X, Trash2, FileText, Bell } from "lucide-react";
+import { Users, BookOpen, MessageSquare, BarChart3, Check, X, Trash2, FileText, Bell, HelpCircle, Send } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { useTranslation } from "react-i18next";
@@ -14,19 +14,25 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 
 interface Member { id: string; full_name: string; christian_name: string | null; department: string | null; status: string | null; created_at: string; }
 interface PrayerRequest { id: string; name: string; prayer_text: string; status: string | null; created_at: string; }
+interface CommunityQuestion { id: string; user_name: string; question: string; answer: string | null; status: string; created_at: string; }
 
 const CHART_COLORS = ["hsl(43,65%,52%)", "hsl(0,75%,27%)", "hsl(150,40%,16%)", "hsl(43,80%,58%)"];
+
+type TabId = "overview" | "members" | "prayers" | "content" | "qa";
 
 const Admin = () => {
   const navigate = useNavigate();
   const { t } = useTranslation();
   const [members, setMembers] = useState<Member[]>([]);
   const [prayers, setPrayers] = useState<PrayerRequest[]>([]);
-  const [activeTab, setActiveTab] = useState<"overview" | "members" | "prayers" | "content">("overview");
+  const [questions, setQuestions] = useState<CommunityQuestion[]>([]);
+  const [activeTab, setActiveTab] = useState<TabId>("overview");
   const [loading, setLoading] = useState(true);
   const [articleTitle, setArticleTitle] = useState("");
   const [articleContent, setArticleContent] = useState("");
   const [articleCategory, setArticleCategory] = useState("general");
+  const [answeringId, setAnsweringId] = useState<string | null>(null);
+  const [answerText, setAnswerText] = useState("");
 
   useEffect(() => { checkAuth(); }, []);
 
@@ -40,12 +46,14 @@ const Admin = () => {
   };
 
   const fetchData = async () => {
-    const [membersRes, prayersRes] = await Promise.all([
+    const [membersRes, prayersRes, questionsRes] = await Promise.all([
       supabase.from("members").select("*").order("created_at", { ascending: false }),
       supabase.from("prayer_requests").select("*").order("created_at", { ascending: false }),
+      supabase.from("community_questions").select("*").order("created_at", { ascending: false }),
     ]);
     if (membersRes.data) setMembers(membersRes.data);
     if (prayersRes.data) setPrayers(prayersRes.data);
+    if (questionsRes.data) setQuestions(questionsRes.data);
     setLoading(false);
   };
 
@@ -77,13 +85,30 @@ const Admin = () => {
       title: articleTitle, content: articleContent, category: articleCategory, author_id: user?.id, published: true,
     });
     if (error) { toast({ title: "Error", description: error.message, variant: "destructive" }); return; }
-    toast({ title: "Article created!" });
+    toast({ title: t("admin.articleCreated") || "Article created!" });
     setArticleTitle(""); setArticleContent("");
+  };
+
+  const submitAnswer = async (id: string) => {
+    if (!answerText.trim()) return;
+    const { error } = await supabase.from("community_questions").update({ answer: answerText, status: "answered" }).eq("id", id);
+    if (error) { toast({ title: "Error", description: error.message, variant: "destructive" }); return; }
+    setQuestions((prev) => prev.map((q) => (q.id === id ? { ...q, answer: answerText, status: "answered" } : q)));
+    setAnsweringId(null); setAnswerText("");
+    toast({ title: t("admin.answerPublished") || "Answer published!" });
+  };
+
+  const deleteQuestion = async (id: string) => {
+    const { error } = await supabase.from("community_questions").delete().eq("id", id);
+    if (error) { toast({ title: "Error", description: error.message, variant: "destructive" }); return; }
+    setQuestions((prev) => prev.filter((q) => q.id !== id));
+    toast({ title: "Question deleted" });
   };
 
   const pendingMembers = members.filter((m) => m.status === "pending").length;
   const pendingPrayers = prayers.filter((p) => p.status === "pending").length;
-  const totalNotifications = pendingMembers + pendingPrayers;
+  const pendingQuestions = questions.filter((q) => q.status === "pending").length;
+  const totalNotifications = pendingMembers + pendingPrayers + pendingQuestions;
 
   const deptDistribution = ["education", "choir", "service", "finance"].map((dept) => ({
     name: dept.charAt(0).toUpperCase() + dept.slice(1), value: members.filter((m) => m.department === dept).length,
@@ -101,6 +126,7 @@ const Admin = () => {
     { id: "members" as const, label: t("admin.members"), icon: Users, badge: pendingMembers },
     { id: "prayers" as const, label: t("admin.prayers"), icon: MessageSquare, badge: pendingPrayers },
     { id: "content" as const, label: t("admin.content"), icon: FileText, badge: 0 },
+    { id: "qa" as const, label: t("admin.qa") || "Q&A", icon: HelpCircle, badge: pendingQuestions },
   ];
 
   if (loading) return <Layout><div className="py-20 text-center"><p className="text-muted-foreground font-body">{t("common.loading")}</p></div></Layout>;
@@ -133,11 +159,12 @@ const Admin = () => {
 
           {activeTab === "overview" && (
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+              <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 mb-8">
                 {[
                   { label: t("admin.totalMembers"), value: members.length, icon: Users },
                   { label: t("admin.pendingApprovals"), value: pendingMembers, icon: BookOpen },
                   { label: t("admin.prayerRequests"), value: prayers.length, icon: MessageSquare },
+                  { label: t("admin.qa") || "Q&A", value: pendingQuestions, icon: HelpCircle },
                 ].map((stat) => (
                   <div key={stat.label} className="bg-card rounded-lg border border-border p-6">
                     <div className="flex items-center gap-3 mb-2"><stat.icon className="w-5 h-5 text-primary" /><span className="text-sm font-body text-muted-foreground">{stat.label}</span></div>
@@ -212,7 +239,7 @@ const Admin = () => {
                       {p.status === "pending" && (
                         <Button size="sm" variant="ghost" onClick={() => updatePrayerStatus(p.id, "approved")}><Check className="w-4 h-4 text-accent" /></Button>
                       )}
-                      {p.status !== "rejected" && p.status === "pending" && (
+                      {p.status === "pending" && (
                         <Button size="sm" variant="ghost" onClick={() => updatePrayerStatus(p.id, "rejected")}><X className="w-4 h-4 text-destructive" /></Button>
                       )}
                       <Button size="sm" variant="ghost" onClick={() => deletePrayer(p.id)}><Trash2 className="w-4 h-4 text-destructive" /></Button>
@@ -239,6 +266,52 @@ const Admin = () => {
                   <div><Label className="font-body">{t("admin.articleContent")}</Label><Textarea value={articleContent} onChange={(e) => setArticleContent(e.target.value)} rows={6} className="mt-1" placeholder="Write article content..." /></div>
                   <Button onClick={createArticle}>{t("admin.createArticle")}</Button>
                 </div>
+              </div>
+            </motion.div>
+          )}
+
+          {activeTab === "qa" && (
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+              <h3 className="font-display text-xl font-bold text-foreground mb-4">{t("admin.qaManagement") || "Q&A Management"}</h3>
+              <div className="space-y-3">
+                {questions.map((q) => (
+                  <div key={q.id} className="bg-card rounded-lg border border-border p-4">
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-2">
+                          <span className={`text-xs font-body font-semibold px-2 py-0.5 rounded-full ${q.status === "answered" ? "bg-accent/10 text-accent" : "bg-primary/10 text-primary"}`}>
+                            {q.status === "answered" ? t("qa.answered") || "Answered" : t("qa.pending") || "Pending"}
+                          </span>
+                          <span className="text-xs text-muted-foreground font-body">{q.user_name} • {new Date(q.created_at).toLocaleDateString()}</span>
+                        </div>
+                        <p className="text-foreground text-sm font-body font-semibold mb-2">{q.question}</p>
+                        {q.answer && (
+                          <div className="bg-muted/50 rounded-md p-3 border border-border mb-2">
+                            <p className="text-sm font-body text-foreground"><span className="font-semibold text-primary">Answer:</span> {q.answer}</p>
+                          </div>
+                        )}
+                        {answeringId === q.id && (
+                          <div className="flex gap-2 mt-2">
+                            <Textarea value={answerText} onChange={(e) => setAnswerText(e.target.value)} placeholder="Write your answer..." rows={2} className="flex-1" />
+                            <div className="flex flex-col gap-1">
+                              <Button size="sm" onClick={() => submitAnswer(q.id)}><Send className="w-4 h-4" /></Button>
+                              <Button size="sm" variant="ghost" onClick={() => { setAnsweringId(null); setAnswerText(""); }}><X className="w-4 h-4" /></Button>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex gap-1 flex-shrink-0">
+                        {q.status === "pending" && (
+                          <Button size="sm" variant="ghost" onClick={() => { setAnsweringId(q.id); setAnswerText(q.answer || ""); }}>
+                            <FileText className="w-4 h-4 text-primary" />
+                          </Button>
+                        )}
+                        <Button size="sm" variant="ghost" onClick={() => deleteQuestion(q.id)}><Trash2 className="w-4 h-4 text-destructive" /></Button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+                {questions.length === 0 && <div className="bg-card rounded-lg border border-border p-8 text-center text-muted-foreground font-body">{t("admin.noQuestions") || "No questions yet."}</div>}
               </div>
             </motion.div>
           )}
