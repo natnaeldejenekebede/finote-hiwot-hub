@@ -1,73 +1,54 @@
-# Welcome to your Lovable project
+ፍኖተ ሕይወት (Finote Hiwot Hub) ⛪
+ይህ ድረ-ገጽ የሆሳዕና ደብረ ምሕረት ቅዱስ ገብርኤል ካቴድራል ፍኖተ ሕይወት ሰንበት ትምህርት ቤት መንፈሳዊ አገልግሎቶችን በዲጂታል መልክ ለማቅረብ የተሰራ ዘመናዊ መድረክ ነው።
 
-## Project info
+ዋና ዋና ክፍሎች (Main Features)
+ትምህርተ ሃይማኖት፡ በዘርፍ የተከፋፈሉ መንፈሳዊ ጽሑፎች።
 
-**URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
+የዕለቱ ጥቅስ፡ በየቀኑ የሚታደስ የመጽሐፍ ቅዱስ ጥቅስ (Bilingual)።
 
-## How can I edit this code?
+ማህበረሰብ Q&A፡ ምዕመናን ጥያቄ የሚጠይቁበትና ምላሽ የሚያገኙበት ክፍል።
 
-There are several ways of editing your application.
+ሚዲያ ማዕከል፡ መዝሙራት፣ ፎቶዎች እና ትምህርታዊ የPDF ሰነዶች።
 
-**Use Lovable**
+የአስተዳዳሪ ገጽ (Admin Panel)፡ ይዘቶችን በቀላሉ ለመቆጣጠር የሚያስችል የቁጥጥር ማዕከል።
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and start prompting.
+ፕሮጀክቱን በኮምፒውተርህ ላይ ለመጫን (Local Setup)
+ይህንን ፕሮጀክት በኮምፒውተርህ ላይ ለመጠቀም Node.js እና npm መጫኑን አረጋግጥ።
 
-Changes made via Lovable will be committed automatically to this repo.
+ሪፖዚቶሪውን ክሎን (Clone) አድርግ፦
 
-**Use your preferred IDE**
+አስፈላጊ ጥቅሎችን ጫን (Install Dependencies)፦
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+የዳታቤዝ ቁልፎችን አስተካክል፦
+በፕሮጀክቱ ስር .env.local የሚል ፋይል ፍጠርና የSupabase URL እና Keys አስገባ።
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+ፕሮጀክቱን አስነሳ፦
 
-Follow these steps:
+አሁን በ http://localhost:5173 ላይ መክፈት ትችላለህ።
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+ጥቅም ላይ የዋሉ ቴክኖሎጂዎች (Tech Stack)
+ይህ ፕሮጀክት የተገነባው በሚከተሉት የቴክኖሎጂ ውጤቶች ነው፦
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+Framework: React + Vite
 
-# Step 3: Install the necessary dependencies.
-npm i
+Language: TypeScript
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
-```
+Styling: Tailwind CSS + shadcn/ui
 
-**Edit a file directly in GitHub**
+Database: Supabase (Backend as a Service)
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+Translation: i18next (Bilingual Support)
 
-**Use GitHub Codespaces**
+ማሰማራት (Deployment)
+ይህንን ፕሮጀክት ለሕዝብ ይፋ ለማድረግ (Deploy) በ Vercel ወይም በ Netlify መጠቀም ይመከራል።
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+የGitHub ሪፖዚቶሪህን ከVercel ጋር አገናኝ።
 
-## What technologies are used for this project?
+የ Environment Variables (VITE_SUPABASE_URL እና VITE_SUPABASE_ANON_KEY) በVercel settings ላይ ጨምር።
 
-This project is built with:
+"Deploy" የሚለውን ተጫን።
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+ግንኙነት (Contact)
+ስለ ፕሮጀክቱ ማንኛውም ጥያቄ ካለዎት በቤተክርስቲያኑ ማህበራዊ ሚዲያ ወይም በኢሜይል አድራሻችን ያግኙን።
 
-## How can I deploy this project?
-
-Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.
-
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+© 2026 የሆሳዕና ደብረ ምሕረት ፍኖተ ሕይወት ሰንበት ትምህርት ቤት።
