@@ -44,6 +44,159 @@ export type Database = {
         }
         Relationships: []
       }
+      daily_wisdom: {
+        Row: {
+          id: string
+          reference_am: string
+          reference_en: string
+          updated_at: string
+          verse_am: string
+          verse_en: string
+        }
+        Insert: {
+          id?: string
+          reference_am?: string
+          reference_en?: string
+          updated_at?: string
+          verse_am?: string
+          verse_en?: string
+        }
+        Update: {
+          id?: string
+          reference_am?: string
+          reference_en?: string
+          updated_at?: string
+          verse_am?: string
+          verse_en?: string
+        }
+        Relationships: []
+      }
+      documents: {
+        Row: {
+          category: string
+          created_at: string
+          file_url: string
+          id: string
+          title: string
+          title_am: string | null
+        }
+        Insert: {
+          category?: string
+          created_at?: string
+          file_url: string
+          id?: string
+          title: string
+          title_am?: string | null
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          file_url?: string
+          id?: string
+          title?: string
+          title_am?: string | null
+        }
+        Relationships: []
+      }
+      events: {
+        Row: {
+          created_at: string
+          description: string | null
+          description_am: string | null
+          event_date: string | null
+          event_time: string | null
+          event_type: string
+          id: string
+          location: string | null
+          location_am: string | null
+          recurring: boolean
+          title: string
+          title_am: string | null
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          description_am?: string | null
+          event_date?: string | null
+          event_time?: string | null
+          event_type?: string
+          id?: string
+          location?: string | null
+          location_am?: string | null
+          recurring?: boolean
+          title: string
+          title_am?: string | null
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          description_am?: string | null
+          event_date?: string | null
+          event_time?: string | null
+          event_type?: string
+          id?: string
+          location?: string | null
+          location_am?: string | null
+          recurring?: boolean
+          title?: string
+          title_am?: string | null
+        }
+        Relationships: []
+      }
+      gallery: {
+        Row: {
+          category: string
+          created_at: string
+          id: string
+          image_url: string
+          title: string
+          title_am: string | null
+        }
+        Insert: {
+          category?: string
+          created_at?: string
+          id?: string
+          image_url: string
+          title: string
+          title_am?: string | null
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          id?: string
+          image_url?: string
+          title?: string
+          title_am?: string | null
+        }
+        Relationships: []
+      }
+      hymns: {
+        Row: {
+          artist: string
+          audio_url: string | null
+          created_at: string
+          duration: string | null
+          id: string
+          title: string
+        }
+        Insert: {
+          artist?: string
+          audio_url?: string | null
+          created_at?: string
+          duration?: string | null
+          id?: string
+          title: string
+        }
+        Update: {
+          artist?: string
+          audio_url?: string | null
+          created_at?: string
+          duration?: string | null
+          id?: string
+          title?: string
+        }
+        Relationships: []
+      }
       members: {
         Row: {
           age: number | null
@@ -188,6 +341,57 @@ export type Database = {
           theme?: string | null
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      projects: {
+        Row: {
+          active: boolean
+          created_at: string
+          goal_amount: number
+          id: string
+          name: string
+          name_am: string | null
+          raised_amount: number
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          goal_amount?: number
+          id?: string
+          name: string
+          name_am?: string | null
+          raised_amount?: number
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          goal_amount?: number
+          id?: string
+          name?: string
+          name_am?: string | null
+          raised_amount?: number
+        }
+        Relationships: []
+      }
+      site_settings: {
+        Row: {
+          id: string
+          key: string
+          updated_at: string
+          value: string
+        }
+        Insert: {
+          id?: string
+          key: string
+          updated_at?: string
+          value?: string
+        }
+        Update: {
+          id?: string
+          key?: string
+          updated_at?: string
+          value?: string
         }
         Relationships: []
       }

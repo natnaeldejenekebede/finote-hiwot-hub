@@ -7,16 +7,12 @@ import SectionHeading from "@/components/SectionHeading";
 import EthiopianCross from "@/components/EthiopianCross";
 import heroBg from "@/assets/hero-bg.jpg";
 import { useTranslation } from "react-i18next";
-import { useMemo } from "react";
+import { useState, useEffect, useMemo } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
-const dailyWisdomVerses = [
-  { verse: "\"I am the way, the truth, and the life. No one comes to the Father except through Me.\"", verseAm: "\"መንገዱና እውነቱና ሕይወቱ እኔ ነኝ፤ በእኔ በቀር ወደ አብ የሚመጣ የለም።\"", ref: "John 14:6 / ዮሐ 14:6" },
-  { verse: "\"Be strong and courageous. Do not be afraid; do not be discouraged, for the Lord your God will be with you wherever you go.\"", verseAm: "\"ጠንክር ጽና፤ አትፍራ አትደንግጥ፤ አምላክህ እግዚአብሔር በምትሄድበት ሁሉ ከአንተ ጋር ነውና።\"", ref: "Joshua 1:9 / ኢያ 1:9" },
-  { verse: "\"Trust in the Lord with all your heart and lean not on your own understanding.\"", verseAm: "\"በፍጹም ልብህ በእግዚአብሔር ታመን፤ በራስህ ማስተዋልም አትደገፍ።\"", ref: "Proverbs 3:5 / ምሳ 3:5" },
-  { verse: "\"The Lord is my shepherd, I lack nothing.\"", verseAm: "\"እግዚአብሔር እረኛዬ ነው፤ የሚያሳጣኝ የለም።\"", ref: "Psalm 23:1 / መዝ 23:1" },
-  { verse: "\"For God so loved the world that he gave his one and only Son.\"", verseAm: "\"እግዚአብሔር ዓለሙን እንዲሁ ወዶአልና አንድያ ልጁን ሰጠ።\"", ref: "John 3:16 / ዮሐ 3:16" },
-  { verse: "\"Come to me, all you who are weary and burdened, and I will give you rest.\"", verseAm: "\"እናንት ደካሞች ሸክም የከበዳችሁ ሁሉ ወደ እኔ ኑ፤ እኔም አሳርፋችኋለሁ።\"", ref: "Matthew 11:28 / ማቴ 11:28" },
-  { verse: "\"I can do all things through Christ who strengthens me.\"", verseAm: "\"በሚያበረታኝ በክርስቶስ ሁሉን እችላለሁ።\"", ref: "Philippians 4:13 / ፊል 4:13" },
+const fallbackVerses = [
+  { verse: "\"I am the way, the truth, and the life.\"", verseAm: "\"መንገዱና እውነቱና ሕይወቱ እኔ ነኝ።\"", ref: "John 14:6", refAm: "ዮሐ 14:6" },
+  { verse: "\"The Lord is my shepherd, I lack nothing.\"", verseAm: "\"እግዚአብሔር እረኛዬ ነው፤ የሚያሳጣኝ የለም።\"", ref: "Psalm 23:1", refAm: "መዝ 23:1" },
 ];
 
 const upcomingFeasts = [
@@ -32,26 +28,34 @@ function getNextFeast() {
 }
 
 function getCountdown(target: Date) {
-  const now = new Date();
-  const diff = target.getTime() - now.getTime();
+  const diff = target.getTime() - Date.now();
   if (diff <= 0) return { days: 0, hours: 0 };
-  return {
-    days: Math.floor(diff / (1000 * 60 * 60 * 24)),
-    hours: Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)),
-  };
-}
-
-function getDailyVerse(lang: string) {
-  const dayOfYear = Math.floor((Date.now() - new Date(new Date().getFullYear(), 0, 0).getTime()) / (1000 * 60 * 60 * 24));
-  const v = dailyWisdomVerses[dayOfYear % dailyWisdomVerses.length];
-  return { verse: lang === "am" ? v.verseAm : v.verse, ref: v.ref };
+  return { days: Math.floor(diff / (1000 * 60 * 60 * 24)), hours: Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)) };
 }
 
 const Index = () => {
   const { t, i18n } = useTranslation();
+  const isAm = i18n.language === "am";
   const feast = getNextFeast();
   const countdown = getCountdown(feast.date);
-  const wisdom = useMemo(() => getDailyVerse(i18n.language), [i18n.language]);
+
+  const [wisdom, setWisdom] = useState({ verse: "", ref: "" });
+
+  useEffect(() => {
+    const fetchWisdom = async () => {
+      const { data } = await supabase.from("daily_wisdom").select("*").limit(1);
+      if (data && data[0]) {
+        setWisdom({
+          verse: isAm ? data[0].verse_am : data[0].verse_en,
+          ref: isAm ? data[0].reference_am : data[0].reference_en,
+        });
+      } else {
+        const fb = fallbackVerses[0];
+        setWisdom({ verse: isAm ? fb.verseAm : fb.verse, ref: isAm ? fb.refAm : fb.ref });
+      }
+    };
+    fetchWisdom();
+  }, [isAm]);
 
   const features = [
     { icon: BookOpen, title: t("home.spiritualEd"), desc: t("home.spiritualEdDesc"), link: "/about" },
@@ -68,39 +72,24 @@ const Index = () => {
         <div className="absolute inset-0 bg-gradient-to-b from-foreground/70 via-foreground/50 to-foreground/80" />
         <div className="absolute inset-0 ethiopian-pattern opacity-30" />
 
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
-          className="relative z-10 text-center px-4 max-w-3xl"
-        >
+        <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }}
+          className="relative z-10 text-center px-4 max-w-3xl">
           <EthiopianCross className="w-12 h-12 text-gold mx-auto mb-6" />
-          <h1 className="font-display text-5xl md:text-7xl font-bold text-primary-foreground mb-2">
-            {t("home.schoolName")}
-          </h1>
-          <p className="font-display text-xl md:text-2xl text-gold-glow mb-2">
-            {t("home.schoolSubtitle")}
-          </p>
-          <p className="text-primary-foreground/70 text-sm font-body mb-8">
-            {t("home.cathedral")}
-          </p>
+          <h1 className="font-display text-5xl md:text-7xl font-bold text-primary-foreground mb-2">{t("home.schoolName")}</h1>
+          <p className="font-display text-xl md:text-2xl text-gold-glow mb-2">{t("home.schoolSubtitle")}</p>
+          <p className="text-primary-foreground/70 text-sm font-body mb-8">{t("home.cathedral")}</p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-10">
-            <Link to="/join">
-              <Button variant="hero" size="lg">{t("home.becomeMember")}</Button>
-            </Link>
-            <Link to="/about">
-              <Button variant="hero-outline" size="lg">{t("home.learnMore")}</Button>
-            </Link>
+            <Link to="/join"><Button variant="hero" size="lg">{t("home.becomeMember")}</Button></Link>
+            <Link to="/about"><Button variant="hero-outline" size="lg">{t("home.learnMore")}</Button></Link>
           </div>
 
-          {/* Scripture */}
-          <div className="bg-foreground/30 backdrop-blur-sm rounded-lg p-6 border border-primary-foreground/10 max-w-xl mx-auto">
-            <p className="font-display text-primary-foreground/90 italic text-lg mb-2">
-              {wisdom.verse}
-            </p>
-            <p className="text-gold text-sm font-body font-semibold">— {wisdom.ref}</p>
-          </div>
+          {wisdom.verse && (
+            <div className="bg-foreground/30 backdrop-blur-sm rounded-lg p-6 border border-primary-foreground/10 max-w-xl mx-auto">
+              <p className="font-display text-primary-foreground/90 italic text-lg mb-2">{wisdom.verse}</p>
+              <p className="text-gold text-sm font-body font-semibold">— {wisdom.ref}</p>
+            </div>
+          )}
         </motion.div>
       </section>
 
@@ -109,7 +98,7 @@ const Index = () => {
         <div className="container mx-auto px-4 flex flex-col sm:flex-row items-center justify-center gap-4 text-center">
           <EthiopianCross className="w-5 h-5 text-gold" />
           <p className="text-secondary-foreground font-body text-sm">
-            <span className="font-semibold text-gold">{i18n.language === "am" ? feast.nameAm : feast.name}</span>{" "}
+            <span className="font-semibold text-gold">{isAm ? feast.nameAm : feast.name}</span>{" "}
             {t("home.feastIn")}{" "}
             <span className="font-bold text-lg text-secondary-foreground">{countdown.days}</span> {t("home.days")},{" "}
             <span className="font-bold text-lg text-secondary-foreground">{countdown.hours}</span> {t("home.hours")}
@@ -121,22 +110,20 @@ const Index = () => {
       {/* Daily Wisdom */}
       <section className="py-12 bg-gradient-to-r from-primary/5 to-secondary/5">
         <div className="container mx-auto px-4">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="max-w-2xl mx-auto text-center"
-          >
+          <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
+            className="max-w-2xl mx-auto text-center">
             <div className="flex items-center justify-center gap-3 mb-4">
               <Sparkles className="w-6 h-6 text-primary" />
               <h2 className="font-display text-2xl font-bold text-foreground">{t("home.dailyWisdom")}</h2>
               <Sparkles className="w-6 h-6 text-primary" />
             </div>
             <p className="text-muted-foreground font-body text-sm mb-4">{t("home.dailyWisdomSubtitle")}</p>
-            <div className="bg-card rounded-xl border border-border p-8">
-              <p className="font-display text-foreground italic text-xl leading-relaxed mb-3">{wisdom.verse}</p>
-              <p className="text-primary text-sm font-body font-semibold">— {wisdom.ref}</p>
-            </div>
+            {wisdom.verse && (
+              <div className="bg-card rounded-xl border border-border p-8">
+                <p className="font-display text-foreground italic text-xl leading-relaxed mb-3">{wisdom.verse}</p>
+                <p className="text-primary text-sm font-body font-semibold">— {wisdom.ref}</p>
+              </div>
+            )}
           </motion.div>
         </div>
       </section>
@@ -147,17 +134,10 @@ const Index = () => {
           <SectionHeading title={t("home.pillarsTitle")} subtitle={t("home.pillarsSubtitle")} />
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {features.map((f, i) => (
-              <motion.div
-                key={i}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.1 }}
-              >
-                <Link
-                  to={f.link}
-                  className="block bg-card rounded-lg p-6 border border-border hover:border-primary/30 hover:shadow-lg transition-all duration-300 group h-full"
-                >
+              <motion.div key={i} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }} transition={{ delay: i * 0.1 }}>
+                <Link to={f.link}
+                  className="block bg-card rounded-lg p-6 border border-border hover:border-primary/30 hover:shadow-lg transition-all duration-300 group h-full">
                   <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-4 group-hover:bg-primary/20 transition-colors">
                     <f.icon className="w-6 h-6 text-primary" />
                   </div>
@@ -173,15 +153,9 @@ const Index = () => {
       {/* CTA */}
       <section className="py-16 gradient-gold text-center">
         <div className="container mx-auto px-4">
-          <h2 className="font-display text-3xl font-bold text-primary-foreground mb-4">
-            {t("home.ctaTitle")}
-          </h2>
-          <p className="text-primary-foreground/80 font-body mb-8 max-w-lg mx-auto">
-            {t("home.ctaDesc")}
-          </p>
-          <Link to="/join">
-            <Button variant="hero-outline" size="lg">{t("home.registerNow")}</Button>
-          </Link>
+          <h2 className="font-display text-3xl font-bold text-primary-foreground mb-4">{t("home.ctaTitle")}</h2>
+          <p className="text-primary-foreground/80 font-body mb-8 max-w-lg mx-auto">{t("home.ctaDesc")}</p>
+          <Link to="/join"><Button variant="hero-outline" size="lg">{t("home.registerNow")}</Button></Link>
         </div>
       </section>
     </Layout>
