@@ -10,12 +10,13 @@ import { Switch } from "@/components/ui/switch";
 import {
   Users, BookOpen, MessageSquare, BarChart3, Check, X, Trash2,
   FileText, Bell, HelpCircle, Send, Image, Music, Calendar,
-  Heart, Sparkles, Video, FileDown, DollarSign
+  Heart, Sparkles, Video, FileDown, DollarSign, Baby
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { useTranslation } from "react-i18next";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
+import FileUploader from "@/components/FileUploader";
 
 interface Member { id: string; full_name: string; christian_name: string | null; department: string | null; status: string | null; created_at: string; }
 interface PrayerRequest { id: string; name: string; prayer_text: string; status: string | null; created_at: string; }
@@ -26,10 +27,11 @@ interface Hymn { id: string; title: string; artist: string; audio_url: string | 
 interface Event { id: string; title: string; title_am: string | null; description: string | null; event_date: string | null; event_time: string | null; location: string | null; event_type: string; }
 interface Project { id: string; name: string; name_am: string | null; goal_amount: number; raised_amount: number; active: boolean; }
 interface Doc { id: string; title: string; category: string; file_url: string; }
+interface KidsStory { id: string; title_en: string; title_am: string; story_text_en: string; story_text_am: string; bible_reference: string | null; emoji: string | null; order_index: number; image_url: string | null; audio_url: string | null; }
 
 const CHART_COLORS = ["hsl(43,65%,52%)", "hsl(0,75%,27%)", "hsl(150,40%,16%)", "hsl(43,80%,58%)"];
 
-type TabId = "overview" | "members" | "prayers" | "content" | "media" | "events" | "donations" | "wisdom" | "qa";
+type TabId = "overview" | "members" | "prayers" | "content" | "media" | "events" | "donations" | "wisdom" | "qa" | "kids";
 
 const Admin = () => {
   const navigate = useNavigate();
@@ -43,6 +45,7 @@ const Admin = () => {
   const [events, setEvents] = useState<Event[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
   const [documents, setDocuments] = useState<Doc[]>([]);
+  const [kidsStories, setKidsStories] = useState<KidsStory[]>([]);
   const [activeTab, setActiveTab] = useState<TabId>("overview");
   const [loading, setLoading] = useState(true);
 
@@ -95,6 +98,16 @@ const Admin = () => {
   const [liveUrl, setLiveUrl] = useState("");
   const [liveActive, setLiveActive] = useState(false);
 
+  // Kids form
+  const [kidTitleEn, setKidTitleEn] = useState("");
+  const [kidTitleAm, setKidTitleAm] = useState("");
+  const [kidStoryEn, setKidStoryEn] = useState("");
+  const [kidStoryAm, setKidStoryAm] = useState("");
+  const [kidRef, setKidRef] = useState("");
+  const [kidEmoji, setKidEmoji] = useState("📖");
+  const [kidImageUrl, setKidImageUrl] = useState("");
+  const [kidAudioUrl, setKidAudioUrl] = useState("");
+
   useEffect(() => { checkAuth(); }, []);
 
   const checkAuth = async () => {
@@ -107,7 +120,7 @@ const Admin = () => {
   };
 
   const fetchData = async () => {
-    const [membersRes, prayersRes, questionsRes, postsRes, galRes, hymnsRes, eventsRes, projRes, docsRes, wisdomRes, settingsRes] = await Promise.all([
+    const [membersRes, prayersRes, questionsRes, postsRes, galRes, hymnsRes, eventsRes, projRes, docsRes, wisdomRes, settingsRes, kidsRes] = await Promise.all([
       supabase.from("members").select("*").order("created_at", { ascending: false }),
       supabase.from("prayer_requests").select("*").order("created_at", { ascending: false }),
       supabase.from("community_questions").select("*").order("created_at", { ascending: false }),
@@ -119,6 +132,7 @@ const Admin = () => {
       supabase.from("documents").select("*").order("created_at", { ascending: false }),
       supabase.from("daily_wisdom").select("*").limit(1),
       supabase.from("site_settings").select("*"),
+      supabase.from("kids_corner").select("*").order("order_index", { ascending: true }),
     ]);
     if (membersRes.data) setMembers(membersRes.data);
     if (prayersRes.data) setPrayers(prayersRes.data);
@@ -129,6 +143,7 @@ const Admin = () => {
     if (eventsRes.data) setEvents(eventsRes.data as Event[]);
     if (projRes.data) setProjects(projRes.data);
     if (docsRes.data) setDocuments(docsRes.data);
+    if (kidsRes.data) setKidsStories(kidsRes.data);
     if (wisdomRes.data && wisdomRes.data[0]) {
       const w = wisdomRes.data[0];
       setWisdomVerseEn(w.verse_en); setWisdomRefEn(w.reference_en);
@@ -199,7 +214,7 @@ const Admin = () => {
   };
 
   const addGalleryPhoto = async () => {
-    if (!galTitle.trim() || !galUrl.trim()) { toast({ title: "Title & URL required", variant: "destructive" }); return; }
+    if (!galTitle.trim() || !galUrl.trim()) { toast({ title: "Title & image required", variant: "destructive" }); return; }
     const { error } = await supabase.from("gallery").insert({ title: galTitle, category: galCategory, image_url: galUrl });
     if (error) { toast({ title: "Error", description: error.message, variant: "destructive" }); return; }
     toast({ title: "Photo added!" }); setGalTitle(""); setGalUrl("");
@@ -294,6 +309,27 @@ const Admin = () => {
     toast({ title: "Live stream settings saved!" });
   };
 
+  // Kids CRUD
+  const addKidsStory = async () => {
+    if (!kidTitleEn.trim() || !kidTitleAm.trim()) { toast({ title: "Both titles required", variant: "destructive" }); return; }
+    const nextOrder = kidsStories.length > 0 ? Math.max(...kidsStories.map(s => s.order_index)) + 1 : 1;
+    const { error } = await supabase.from("kids_corner").insert({
+      title_en: kidTitleEn, title_am: kidTitleAm, story_text_en: kidStoryEn, story_text_am: kidStoryAm,
+      bible_reference: kidRef || null, emoji: kidEmoji || "📖", order_index: nextOrder,
+      image_url: kidImageUrl || null, audio_url: kidAudioUrl || null,
+    });
+    if (error) { toast({ title: "Error", description: error.message, variant: "destructive" }); return; }
+    toast({ title: "Story added!" });
+    setKidTitleEn(""); setKidTitleAm(""); setKidStoryEn(""); setKidStoryAm(""); setKidRef(""); setKidEmoji("📖"); setKidImageUrl(""); setKidAudioUrl("");
+    fetchData();
+  };
+
+  const deleteKidsStory = async (id: string) => {
+    await supabase.from("kids_corner").delete().eq("id", id);
+    setKidsStories((prev) => prev.filter((s) => s.id !== id));
+    toast({ title: "Story deleted" });
+  };
+
   const pendingMembers = members.filter((m) => m.status === "pending").length;
   const pendingPrayers = prayers.filter((p) => p.status === "pending").length;
   const pendingQuestions = questions.filter((q) => q.status === "pending").length;
@@ -318,6 +354,7 @@ const Admin = () => {
     { id: "media", label: "Media", icon: Image, badge: 0 },
     { id: "events", label: t("nav.events"), icon: Calendar, badge: 0 },
     { id: "donations", label: t("nav.donations"), icon: DollarSign, badge: 0 },
+    { id: "kids", label: "Kids Corner", icon: Baby, badge: 0 },
     { id: "wisdom", label: "Wisdom", icon: Sparkles, badge: 0 },
     { id: "qa", label: t("admin.qa") || "Q&A", icon: HelpCircle, badge: pendingQuestions },
   ];
@@ -475,7 +512,7 @@ const Admin = () => {
             </motion.div>
           )}
 
-          {/* MEDIA */}
+          {/* MEDIA (with file upload) */}
           {activeTab === "media" && (
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6 max-w-2xl">
               {/* Live Stream */}
@@ -488,8 +525,8 @@ const Admin = () => {
                 <Button onClick={updateLiveStream}>Save Stream Settings</Button>
               </CardSection>
 
-              {/* Gallery */}
-              <CardSection title="Photo Gallery Manager">
+              {/* Gallery with file upload */}
+              <CardSection title="📷 Photo Gallery Manager">
                 <div className="grid grid-cols-2 gap-2">
                   <div><Label className="font-body text-xs">Title</Label><Input value={galTitle} onChange={(e) => setGalTitle(e.target.value)} placeholder="Photo title" /></div>
                   <div><Label className="font-body text-xs">Category</Label>
@@ -498,8 +535,15 @@ const Admin = () => {
                     </select>
                   </div>
                 </div>
-                <div><Label className="font-body text-xs">Image URL</Label><Input value={galUrl} onChange={(e) => setGalUrl(e.target.value)} placeholder="https://..." /></div>
-                <Button size="sm" onClick={addGalleryPhoto}><Image className="w-4 h-4 mr-1" /> Add Photo</Button>
+                <FileUploader bucket="media-gallery" folder="gallery" accept="image" label="Image (Upload or Google Drive Link)" onUploaded={(url) => setGalUrl(url)} />
+                {galUrl && (
+                  <div className="flex items-center gap-2 p-2 bg-muted rounded-md">
+                    <img src={galUrl} alt="Preview" className="w-12 h-12 rounded object-cover" />
+                    <span className="text-xs text-muted-foreground truncate flex-1">{galUrl}</span>
+                    <Button size="sm" variant="ghost" onClick={() => setGalUrl("")}><X className="w-3 h-3" /></Button>
+                  </div>
+                )}
+                <Button size="sm" onClick={addGalleryPhoto} disabled={!galTitle.trim() || !galUrl.trim()}><Image className="w-4 h-4 mr-1" /> Add Photo</Button>
                 {gallery.map((g) => (
                   <div key={g.id} className="flex items-center justify-between border-b border-border pb-2">
                     <div className="flex items-center gap-2">
@@ -511,17 +555,22 @@ const Admin = () => {
                 ))}
               </CardSection>
 
-              {/* Hymns */}
-              <CardSection title="Hymns Manager (መዝሙራት)">
+              {/* Hymns with file upload */}
+              <CardSection title="🎵 Hymns Manager (መዝሙራት)">
                 <div className="grid grid-cols-2 gap-2">
                   <div><Label className="font-body text-xs">Title</Label><Input value={hymnTitle} onChange={(e) => setHymnTitle(e.target.value)} placeholder="Hymn title" /></div>
                   <div><Label className="font-body text-xs">Artist</Label><Input value={hymnArtist} onChange={(e) => setHymnArtist(e.target.value)} /></div>
                 </div>
-                <div className="grid grid-cols-2 gap-2">
-                  <div><Label className="font-body text-xs">Audio/YouTube URL</Label><Input value={hymnUrl} onChange={(e) => setHymnUrl(e.target.value)} placeholder="https://..." /></div>
-                  <div><Label className="font-body text-xs">Duration</Label><Input value={hymnDuration} onChange={(e) => setHymnDuration(e.target.value)} placeholder="4:32" /></div>
-                </div>
-                <Button size="sm" onClick={addHymn}><Music className="w-4 h-4 mr-1" /> Add Hymn</Button>
+                <div><Label className="font-body text-xs">Duration</Label><Input value={hymnDuration} onChange={(e) => setHymnDuration(e.target.value)} placeholder="4:32" /></div>
+                <FileUploader bucket="media-hymns" folder="hymns" accept="audio" label="Audio (Upload or YouTube/Drive Link)" onUploaded={(url) => setHymnUrl(url)} />
+                {hymnUrl && (
+                  <div className="flex items-center gap-2 p-2 bg-muted rounded-md">
+                    <Music className="w-4 h-4 text-primary" />
+                    <span className="text-xs text-muted-foreground truncate flex-1">{hymnUrl}</span>
+                    <Button size="sm" variant="ghost" onClick={() => setHymnUrl("")}><X className="w-3 h-3" /></Button>
+                  </div>
+                )}
+                <Button size="sm" onClick={addHymn} disabled={!hymnTitle.trim()}><Music className="w-4 h-4 mr-1" /> Add Hymn</Button>
                 {hymns.map((h) => (
                   <div key={h.id} className="flex items-center justify-between border-b border-border pb-2">
                     <span className="text-sm font-body">{h.title} — {h.artist}</span>
@@ -530,8 +579,8 @@ const Admin = () => {
                 ))}
               </CardSection>
 
-              {/* Documents */}
-              <CardSection title="Documents Manager (ሰነዶች)">
+              {/* Documents with file upload */}
+              <CardSection title="📄 Documents Manager (ሰነዶች)">
                 <div className="grid grid-cols-2 gap-2">
                   <div><Label className="font-body text-xs">Title</Label><Input value={docTitle} onChange={(e) => setDocTitle(e.target.value)} placeholder="Document title" /></div>
                   <div><Label className="font-body text-xs">Category</Label>
@@ -540,8 +589,15 @@ const Admin = () => {
                     </select>
                   </div>
                 </div>
-                <div><Label className="font-body text-xs">File URL (PDF/Link)</Label><Input value={docUrl} onChange={(e) => setDocUrl(e.target.value)} placeholder="https://..." /></div>
-                <Button size="sm" onClick={addDocument}><FileDown className="w-4 h-4 mr-1" /> Add Document</Button>
+                <FileUploader bucket="media-documents" folder="documents" accept="document" label="File (Upload PDF or Paste Link)" onUploaded={(url) => setDocUrl(url)} />
+                {docUrl && (
+                  <div className="flex items-center gap-2 p-2 bg-muted rounded-md">
+                    <FileDown className="w-4 h-4 text-primary" />
+                    <span className="text-xs text-muted-foreground truncate flex-1">{docUrl}</span>
+                    <Button size="sm" variant="ghost" onClick={() => setDocUrl("")}><X className="w-3 h-3" /></Button>
+                  </div>
+                )}
+                <Button size="sm" onClick={addDocument} disabled={!docTitle.trim() || !docUrl.trim()}><FileDown className="w-4 h-4 mr-1" /> Add Document</Button>
                 {documents.map((d) => (
                   <div key={d.id} className="flex items-center justify-between border-b border-border pb-2">
                     <span className="text-sm font-body">{d.title} <span className="text-xs text-muted-foreground">({d.category})</span></span>
@@ -619,6 +675,45 @@ const Admin = () => {
                     </div>
                   );
                 })}
+              </CardSection>
+            </motion.div>
+          )}
+
+          {/* KIDS CORNER */}
+          {activeTab === "kids" && (
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6 max-w-2xl">
+              <CardSection title="👶 Add Kids Story">
+                <div className="grid grid-cols-2 gap-2">
+                  <div><Label className="font-body text-xs">Title (EN)</Label><Input value={kidTitleEn} onChange={(e) => setKidTitleEn(e.target.value)} placeholder="Noah's Ark" /></div>
+                  <div><Label className="font-body text-xs">Title (አማ)</Label><Input value={kidTitleAm} onChange={(e) => setKidTitleAm(e.target.value)} placeholder="የኖኅ መርከብ" /></div>
+                </div>
+                <div><Label className="font-body text-xs">Story (EN)</Label><Textarea value={kidStoryEn} onChange={(e) => setKidStoryEn(e.target.value)} rows={3} placeholder="Tell the story in simple English..." /></div>
+                <div><Label className="font-body text-xs">Story (አማ)</Label><Textarea value={kidStoryAm} onChange={(e) => setKidStoryAm(e.target.value)} rows={3} placeholder="ታሪኩን በአማርኛ ጻፉ..." /></div>
+                <div className="grid grid-cols-2 gap-2">
+                  <div><Label className="font-body text-xs">Bible Reference</Label><Input value={kidRef} onChange={(e) => setKidRef(e.target.value)} placeholder='"Verse text" — Book 1:1' /></div>
+                  <div><Label className="font-body text-xs">Emoji</Label><Input value={kidEmoji} onChange={(e) => setKidEmoji(e.target.value)} placeholder="🚢" /></div>
+                </div>
+                <FileUploader bucket="media-kids" folder="images" accept="image" label="Story Image (optional)" onUploaded={(url) => setKidImageUrl(url)} />
+                <FileUploader bucket="media-kids" folder="audio" accept="audio" label="Story Audio (optional)" onUploaded={(url) => setKidAudioUrl(url)} />
+                <Button onClick={addKidsStory} disabled={!kidTitleEn.trim() || !kidTitleAm.trim()}>
+                  <Baby className="w-4 h-4 mr-1" /> Add Story
+                </Button>
+              </CardSection>
+
+              <CardSection title="Existing Stories">
+                {kidsStories.length === 0 && <p className="text-sm text-muted-foreground">No stories yet.</p>}
+                {kidsStories.map((s) => (
+                  <div key={s.id} className="flex items-center justify-between border-b border-border pb-2">
+                    <div className="flex items-center gap-2">
+                      <span className="text-2xl">{s.emoji || "📖"}</span>
+                      <div>
+                        <p className="text-sm font-body font-semibold text-foreground">{s.title_en}</p>
+                        <p className="text-xs text-muted-foreground font-ethiopic">{s.title_am}</p>
+                      </div>
+                    </div>
+                    <Button size="sm" variant="ghost" onClick={() => deleteKidsStory(s.id)}><Trash2 className="w-4 h-4 text-destructive" /></Button>
+                  </div>
+                ))}
               </CardSection>
             </motion.div>
           )}
