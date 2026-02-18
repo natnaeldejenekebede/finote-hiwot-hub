@@ -293,7 +293,11 @@
     "notRegistered": "እስካሁን እንደ አባል አልተመዘገቡም።",
     "registerNow": "አሁን ይመዝገቡ",
     "pending": "ፈቃድ በመጠባበቅ ላይ",
-    "approved": "የተፈቀደ አባል"
+    "approved": "የተፈቀደ አባል",
+    "bibleProgress": "የመጽሐፍ ቅዱስ ንባብ",
+    "completed": "ተጠናቋል",
+    "continueReading": "ንባቡን ቀጥል",
+    "chapters": "ምዕራፎች"
   },
   "footer": {
     "description": "የፍኖተ ሕይወት ሰንበት ትምህርት ቤት በኢ.ኦ.ተ.ቤ ሆሳዕና ደብረ ምህረት ካቴድራል። በትምህርት እና ኅብረት እምነትን ማዳበር።",
@@ -306,5 +310,22 @@
     "title": "404",
     "message": "ይቅርታ! ገጹ አልተገኘም",
     "returnHome": "ወደ መነሻ ይመለሱ"
+  },
+  
+  "bible": {
+    "categories": {
+      "all": "ሁሉም",
+      "law": "ኦሪት",
+      "history": "ታሪክ",
+      "wisdom": "ጥበብ",
+      "prophets": "ነቢያት",
+      "gospels": "ወንጌል",
+      "epistles": "መልእክታት",
+      "deuterocanon": "ሁለተኛ ቀኖና",
+      "churchOrder": "ሥርዓተ ቤተክርስቲያን"
+    },
+    "readingJourney": "የንባብ ጉዞ",
+    "chapters": "ምዕራፎች"
   }
 }
+  

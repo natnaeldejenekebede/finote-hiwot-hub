@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import Layout from "@/components/layout/Layout";
 import SectionHeading from "@/components/SectionHeading";
@@ -14,62 +14,151 @@ interface Doc { id: string; title: string; title_am: string | null; category: st
 const Media = () => {
   const { t, i18n } = useTranslation();
   const isAm = i18n.language === "am";
-  const [playingIdx, setPlayingIdx] = useState<number | null>(null);
+  
+  // Sections and Loading
   const [activeSection, setActiveSection] = useState<"photos" | "hymns" | "documents">("photos");
+  const [loading, setLoading] = useState(true);
+  
+  // Data State
   const [gallery, setGallery] = useState<GalleryItem[]>([]);
   const [hymns, setHymns] = useState<Hymn[]>([]);
   const [documents, setDocuments] = useState<Doc[]>([]);
   const [liveActive, setLiveActive] = useState(false);
   const [liveUrl, setLiveUrl] = useState("");
-  const [loading, setLoading] = useState(true);
+
+  // Audio Player State
+  const [playingIdx, setPlayingIdx] = useState<number | null>(null);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [duration, setDuration] = useState(0);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
+    // 1. Initialize Audio Engine
+    if (!audioRef.current) {
+      audioRef.current = new Audio();
+      
+      audioRef.current.ontimeupdate = () => {
+        setCurrentTime(audioRef.current?.currentTime || 0);
+      };
+      
+      audioRef.current.onloadedmetadata = () => {
+        setDuration(audioRef.current?.duration || 0);
+      };
+
+      audioRef.current.onended = () => {
+        setPlayingIdx(null);
+        setCurrentTime(0);
+      };
+    }
+
+    // 2. Fetch All Data
     const fetchAll = async () => {
-      const [galRes, hymnRes, docRes, settingsRes] = await Promise.all([
-        supabase.from("gallery").select("*").order("created_at", { ascending: false }),
-        supabase.from("hymns").select("*").order("created_at", { ascending: false }),
-        supabase.from("documents").select("*").order("created_at", { ascending: false }),
-        supabase.from("site_settings").select("*"),
-      ]);
-      if (galRes.data) setGallery(galRes.data as GalleryItem[]);
-      if (hymnRes.data) setHymns(hymnRes.data);
-      if (docRes.data) setDocuments(docRes.data as Doc[]);
-      if (settingsRes.data) {
-        const url = settingsRes.data.find((s: any) => s.key === "live_stream_url");
-        const active = settingsRes.data.find((s: any) => s.key === "live_stream_active");
-        if (url) setLiveUrl(url.value);
-        if (active) setLiveActive(active.value === "true");
+      try {
+        const [galRes, hymnRes, docRes, settingsRes] = await Promise.all([
+          supabase.from("gallery").select("*").order("created_at", { ascending: false }),
+          supabase.from("hymns").select("*").order("created_at", { ascending: false }),
+          supabase.from("documents").select("*").order("created_at", { ascending: false }),
+          supabase.from("site_settings").select("*"),
+        ]);
+
+        if (galRes.data) setGallery(galRes.data as GalleryItem[]);
+        if (hymnRes.data) setHymns(hymnRes.data);
+        if (docRes.data) setDocuments(docRes.data as Doc[]);
+        
+        if (settingsRes.data) {
+          const urlSetting = settingsRes.data.find((s: any) => s.key === "live_stream_url");
+          const activeSetting = settingsRes.data.find((s: any) => s.key === "live_stream_active");
+          if (urlSetting) setLiveUrl(urlSetting.value);
+          if (activeSetting) setLiveActive(activeSetting.value === "true");
+        }
+      } catch (error) {
+        console.error("Error loading media:", error);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     };
+
     fetchAll();
+
+    // Cleanup audio on unmount
+    return () => {
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current.src = "";
+      }
+    };
   }, []);
 
-  if (loading) return <Layout><div className="py-20 text-center"><Loader2 className="w-6 h-6 animate-spin mx-auto text-primary" /></div></Layout>;
+  // --- Helpers ---
+
+  const formatTime = (time: number) => {
+    if (isNaN(time)) return "0:00";
+    const mins = Math.floor(time / 60);
+    const secs = Math.floor(time % 60);
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  const getPublicMediaUrl = (bucket: string, path: string | null) => {
+    if (!path) return "";
+    if (path.startsWith("http")) return path;
+    const { data } = supabase.storage.from(bucket).getPublicUrl(path);
+    return data.publicUrl;
+  };
+
+  const toggleAudio = (url: string | null, index: number) => {
+    if (!url || !audioRef.current) return;
+    const fullUrl = getPublicMediaUrl("hymns", url);
+
+    if (playingIdx === index) {
+      audioRef.current.pause();
+      setPlayingIdx(null);
+    } else {
+      audioRef.current.src = fullUrl;
+      audioRef.current.play().catch(err => console.error("Playback failed:", err));
+      setPlayingIdx(index);
+    }
+  };
 
   const getYoutubeEmbedUrl = (url: string) => {
     const match = url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/))([^&?]+)/);
     return match ? `https://www.youtube.com/embed/${match[1]}` : null;
   };
 
+  if (loading) {
+    return (
+      <Layout>
+        <div className="py-20 text-center">
+          <Loader2 className="w-8 h-8 animate-spin mx-auto text-primary" />
+        </div>
+      </Layout>
+    );
+  }
+
   return (
     <Layout>
-      <section className="py-20 ethiopian-pattern">
+      <section className="py-20 ethiopian-pattern min-h-screen">
         <div className="container mx-auto px-4">
           <SectionHeading title={t("media.title")} subtitle={t("media.subtitle")} />
 
-          {/* Live Stream */}
+          {/* 1. Live Stream Section */}
           <div className="max-w-3xl mx-auto mb-16">
             <h3 className="font-display text-2xl font-bold text-foreground mb-6 flex items-center gap-2">
               <Video className="w-6 h-6 text-primary" /> {t("media.liveStream")}
             </h3>
             {liveActive && liveUrl ? (
-              <div className="aspect-video rounded-xl overflow-hidden border border-border">
+              <div className="aspect-video rounded-xl overflow-hidden border border-border shadow-lg bg-black">
                 {getYoutubeEmbedUrl(liveUrl) ? (
-                  <iframe src={getYoutubeEmbedUrl(liveUrl)!} className="w-full h-full" allow="autoplay; encrypted-media" allowFullScreen />
+                  <iframe 
+                    src={getYoutubeEmbedUrl(liveUrl)!} 
+                    className="w-full h-full" 
+                    allow="autoplay; encrypted-media" 
+                    allowFullScreen 
+                  />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center bg-card">
-                    <a href={liveUrl} target="_blank" rel="noopener noreferrer" className="text-primary underline font-body">Open Live Stream</a>
+                    <a href={liveUrl} target="_blank" rel="noopener noreferrer" className="text-primary underline font-body">
+                      Open Live Stream
+                    </a>
                   </div>
                 )}
               </div>
@@ -83,10 +172,15 @@ const Media = () => {
             )}
           </div>
 
-          {/* Tabs */}
-          <div className="flex justify-center gap-2 mb-8">
+          {/* 2. Tabs Navigation */}
+          <div className="flex justify-center gap-2 mb-12">
             {(["photos", "hymns", "documents"] as const).map((sec) => (
-              <Button key={sec} variant={activeSection === sec ? "default" : "outline"} size="sm" onClick={() => setActiveSection(sec)} className="gap-2">
+              <Button 
+                key={sec} 
+                variant={activeSection === sec ? "default" : "outline"} 
+                onClick={() => setActiveSection(sec)} 
+                className="gap-2"
+              >
                 {sec === "photos" && <Image className="w-4 h-4" />}
                 {sec === "hymns" && <Music className="w-4 h-4" />}
                 {sec === "documents" && <FileDown className="w-4 h-4" />}
@@ -95,94 +189,123 @@ const Media = () => {
             ))}
           </div>
 
-          {/* Photos */}
-          {activeSection === "photos" && (
-            <div className="mb-16">
-              <h3 className="font-display text-2xl font-bold text-foreground mb-6 flex items-center gap-2">
-                <Image className="w-6 h-6 text-primary" /> {t("media.photoGallery")}
-              </h3>
-              {gallery.length === 0 && <p className="text-center text-muted-foreground font-body">No photos yet.</p>}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                {gallery.map((item, i) => (
-                  <motion.div key={item.id} initial={{ opacity: 0, scale: 0.95 }} whileInView={{ opacity: 1, scale: 1 }}
-                    viewport={{ once: true }} transition={{ delay: i * 0.08 }}
-                    className="group relative aspect-[4/3] rounded-lg border border-border overflow-hidden cursor-pointer hover:border-primary/30 transition-all">
-                    <img src={item.image_url} alt={item.title} className="w-full h-full object-cover" />
-                    <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-foreground/80 to-transparent p-4">
-                      <h4 className="font-display font-semibold text-primary-foreground text-sm">{isAm ? (item.title_am || item.title) : item.title}</h4>
-                      <p className="text-primary-foreground/70 text-xs font-body capitalize">{item.category}</p>
-                    </div>
-                  </motion.div>
-                ))}
-              </div>
-            </div>
-          )}
+          {/* 3. Photos Tab */}
+      {/* 3. Photos Tab - Increased Image Size */}
+{activeSection === "photos" && (
+  /* Changed lg:grid-cols-3 to lg:grid-cols-2 to make images significantly larger */
+  <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-5xl mx-auto">
+    {gallery.length === 0 && <p className="col-span-full text-center text-muted-foreground">No photos found.</p>}
+    {gallery.map((item, i) => (
+      <motion.div 
+        key={item.id} 
+        initial={{ opacity: 0, y: 20 }} 
+        animate={{ opacity: 1, y: 0 }} 
+        transition={{ delay: i * 0.05 }} 
+        /* Changed aspect-square to aspect-video or aspect-[16/10] for a larger footprint */
+        className="group relative aspect-video rounded-2xl overflow-hidden border border-border shadow-md bg-muted"
+      >
+        <img 
+          src={getPublicMediaUrl("gallery", item.image_url)} 
+          alt={item.title} 
+          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" 
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-transparent flex flex-col justify-end p-6">
+          <p className="text-white font-display font-bold text-lg">
+            {isAm ? (item.title_am || item.title) : item.title}
+          </p>
+          <p className="text-white/70 text-sm capitalize">{item.category}</p>
+        </div>
+      </motion.div>
+    ))}
+  </div>
+)}
 
-          {/* Hymns */}
+          {/* 4. Hymns Tab (with Player UI) */}
           {activeSection === "hymns" && (
-            <div>
-              <h3 className="font-display text-2xl font-bold text-foreground mb-6 flex items-center gap-2">
-                <Music className="w-6 h-6 text-primary" /> {t("media.hymns")}
-              </h3>
-              {hymns.length === 0 && <p className="text-center text-muted-foreground font-body">No hymns yet.</p>}
-              <div className="space-y-3 max-w-2xl mx-auto">
-                {hymns.map((hymn, i) => (
-                  <motion.div key={hymn.id} initial={{ opacity: 0, x: -15 }} whileInView={{ opacity: 1, x: 0 }}
-                    viewport={{ once: true }} transition={{ delay: i * 0.08 }}
-                    className="flex items-center justify-between bg-card rounded-lg border border-border p-4 hover:border-primary/30 transition-colors">
+            <div className="max-w-2xl mx-auto space-y-4">
+              {hymns.length === 0 && <p className="text-center text-muted-foreground">No hymns found.</p>}
+              {hymns.map((hymn, i) => (
+                <motion.div 
+                  key={hymn.id} 
+                  initial={{ opacity: 0, x: -20 }} 
+                  animate={{ opacity: 1, x: 0 }} 
+                  className="bg-card border border-border rounded-xl p-4 shadow-sm hover:border-primary/40 transition-colors"
+                >
+                  <div className="flex items-center justify-between">
                     <div className="flex items-center gap-4">
-                      <button
-                        onClick={() => {
-                          if (hymn.audio_url) {
-                            if (hymn.audio_url.includes("youtube")) {
-                              window.open(hymn.audio_url, "_blank");
-                            }
-                          }
-                          setPlayingIdx(playingIdx === i ? null : i);
-                        }}
-                        className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center hover:bg-primary/20 transition-colors"
+                      <button 
+                        onClick={() => toggleAudio(hymn.audio_url, i)} 
+                        className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center hover:bg-primary/20 transition-all text-primary"
                       >
-                        {playingIdx === i ? <Pause className="w-5 h-5 text-primary" /> : <Play className="w-5 h-5 text-primary" />}
+                        {playingIdx === i ? (
+                          <Pause size={24} fill="currentColor" />
+                        ) : (
+                          <Play size={24} className="ml-1" fill="currentColor" />
+                        )}
                       </button>
                       <div>
-                        <h4 className="font-display font-semibold text-foreground text-sm">{hymn.title}</h4>
-                        <p className="text-muted-foreground text-xs font-body">{hymn.artist}</p>
+                        <h4 className="font-bold text-foreground text-sm">{hymn.title}</h4>
+                        <p className="text-xs text-muted-foreground">{hymn.artist}</p>
                       </div>
                     </div>
-                    <span className="text-muted-foreground text-xs font-body">{hymn.duration || "—"}</span>
-                  </motion.div>
-                ))}
-              </div>
+                    <div className="text-right">
+                      <span className="text-xs font-mono text-muted-foreground">
+                        {playingIdx === i ? formatTime(duration) : (hymn.duration || "--:--")}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Real-time Progress Bar */}
+                  {playingIdx === i && (
+                    <div className="mt-4 space-y-2">
+                      <div className="flex justify-between text-[10px] font-mono text-primary/80">
+                        <span>{formatTime(currentTime)}</span>
+                        <span>{formatTime(duration)}</span>
+                      </div>
+                      <div className="relative h-1 w-full bg-primary/10 rounded-full overflow-hidden">
+                        <motion.div 
+                          className="absolute top-0 left-0 h-full bg-primary"
+                          initial={{ width: 0 }}
+                          animate={{ width: `${(currentTime / duration) * 100}%` }}
+                          transition={{ type: "tween", ease: "linear" }}
+                        />
+                      </div>
+                    </div>
+                  )}
+                </motion.div>
+              ))}
             </div>
           )}
 
-          {/* Documents */}
+          {/* 5. Documents Tab */}
           {activeSection === "documents" && (
-            <div>
-              <h3 className="font-display text-2xl font-bold text-foreground mb-6 flex items-center gap-2">
-                <FileDown className="w-6 h-6 text-primary" /> {isAm ? "ሰነዶች" : "Documents"}
-              </h3>
-              {documents.length === 0 && <p className="text-center text-muted-foreground font-body">No documents yet.</p>}
-              <div className="space-y-3 max-w-2xl mx-auto">
-                {documents.map((doc, i) => (
-                  <motion.div key={doc.id} initial={{ opacity: 0, y: 10 }} whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true }} transition={{ delay: i * 0.08 }}
-                    className="flex items-center justify-between bg-card rounded-lg border border-border p-4 hover:border-primary/30 transition-colors">
-                    <div className="flex items-center gap-4">
-                      <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-                        <FileDown className="w-5 h-5 text-primary" />
-                      </div>
-                      <div>
-                        <h4 className="font-display font-semibold text-foreground text-sm">{isAm ? (doc.title_am || doc.title) : doc.title}</h4>
-                        <p className="text-muted-foreground text-xs font-body capitalize">{doc.category}</p>
-                      </div>
+            <div className="max-w-2xl mx-auto space-y-3">
+              {documents.length === 0 && <p className="text-center text-muted-foreground">No documents found.</p>}
+              {documents.map((doc) => (
+                <div key={doc.id} className="flex items-center justify-between bg-card border border-border p-4 rounded-xl hover:bg-accent/50 transition-colors">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-primary/5 rounded-lg text-primary">
+                      <FileDown size={20} />
                     </div>
-                    <a href={doc.file_url} target="_blank" rel="noopener noreferrer">
-                      <Button size="sm" variant="outline"><FileDown className="w-4 h-4 mr-1" /> Download</Button>
+                    <div>
+                      <p className="font-bold text-sm">
+                        {isAm ? (doc.title_am || doc.title) : doc.title}
+                      </p>
+                      <p className="text-xs text-muted-foreground capitalize">{doc.category}</p>
+                    </div>
+                  </div>
+                  <Button variant="outline" size="sm" asChild>
+                    <a 
+                      href={getPublicMediaUrl("documents", doc.file_url)} 
+                      target="_blank" 
+                      rel="noopener noreferrer" 
+                      className="gap-2"
+                    >
+                      <FileDown className="w-4 h-4" /> Download
                     </a>
-                  </motion.div>
-                ))}
-              </div>
+                  </Button>
+                </div>
+              ))}
             </div>
           )}
         </div>

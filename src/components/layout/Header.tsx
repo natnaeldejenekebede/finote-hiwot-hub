@@ -7,6 +7,7 @@ import ThemeToggle from "@/components/ThemeToggle";
 import LanguageToggle from "@/components/LanguageToggle";
 import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
+import NotificationBell from "@/components/NotificationBell";
 
 const Header = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -26,7 +27,7 @@ const Header = () => {
   }, []);
 
   const handleLogout = async () => {
-    await supabase.auth.signOut();
+    await supabase.signOut();
     setUser(null);
     navigate("/");
   };
@@ -71,8 +72,12 @@ const Header = () => {
           <div className="flex items-center gap-1 ml-2 border-l border-border pl-2">
             <LanguageToggle />
             <ThemeToggle />
+            
             {user ? (
               <>
+                {/* Desktop Notification Bell */}
+                <NotificationBell userId={user.id} />
+                
                 <Link to="/profile">
                   <Button size="sm" variant="ghost"><User className="w-4 h-4" /></Button>
                 </Link>
@@ -93,10 +98,14 @@ const Header = () => {
           </div>
         </nav>
 
-        {/* Mobile toggle */}
+        {/* Mobile items */}
         <div className="flex items-center gap-2 lg:hidden">
           <LanguageToggle />
           <ThemeToggle />
+          
+          {/* Mobile Notification Bell (Visible next to toggles if logged in) */}
+          {user && <NotificationBell userId={user.id} />}
+          
           <button
             className="p-2 text-foreground"
             onClick={() => setMobileOpen(!mobileOpen)}
@@ -107,7 +116,7 @@ const Header = () => {
         </div>
       </div>
 
-      {/* Mobile nav */}
+      {/* Mobile nav menu */}
       <AnimatePresence>
         {mobileOpen && (
           <motion.nav

@@ -1,0 +1,102 @@
+export interface BibleBook {
+  id: string;
+  nameEn: string;
+  nameAm: string;
+  chapters: number;
+  category: "Law" | "History" | "Wisdom" | "Prophets" | "Gospels" | "Epistles" | "Deuterocanon" | "Church Order";
+}
+
+export const BIBLE_81: BibleBook[] = [
+  // OT - Law
+  { id: "gen", nameEn: "Genesis", nameAm: "ዘፍጥረት", chapters: 50, category: "Law" },
+  { id: "exo", nameEn: "Exodus", nameAm: "ዘጸአት", chapters: 40, category: "Law" },
+  { id: "lev", nameEn: "Leviticus", nameAm: "ዘሌዋውያን", chapters: 27, category: "Law" },
+  { id: "num", nameEn: "Numbers", nameAm: "ዘኍልቁ", chapters: 36, category: "Law" },
+  { id: "deu", nameEn: "Deuteronomy", nameAm: "ዘዳግም", chapters: 34, category: "Law" },
+  // OT - History
+  { id: "jos", nameEn: "Joshua", nameAm: "ኢያሱ", chapters: 24, category: "History" },
+  { id: "judg", nameEn: "Judges", nameAm: "መሣፍንት", chapters: 21, category: "History" },
+  { id: "ruth", nameEn: "Ruth", nameAm: "ሩት", chapters: 4, category: "History" },
+  { id: "sam1", nameEn: "1 Samuel", nameAm: "1 ሳሙኤል", chapters: 31, category: "History" },
+  { id: "sam2", nameEn: "2 Samuel", nameAm: "2 ሳሙኤል", chapters: 24, category: "History" },
+  { id: "kin1", nameEn: "1 Kings", nameAm: "1 ነገሥት", chapters: 22, category: "History" },
+  { id: "kin2", nameEn: "2 Kings", nameAm: "2 ነገሥት", chapters: 25, category: "History" },
+  { id: "chr1", nameEn: "1 Chronicles", nameAm: "1 ዜና መዋዕል", chapters: 29, category: "History" },
+  { id: "chr2", nameEn: "2 Chronicles", nameAm: "2 ዜና መዋዕል", chapters: 36, category: "History" },
+  { id: "ezra", nameEn: "Ezra", nameAm: "ዕዝራ", chapters: 10, category: "History" },
+  { id: "neh", nameEn: "Nehemiah", nameAm: "ነህምያ", chapters: 13, category: "History" },
+  { id: "est", nameEn: "Esther", nameAm: "አስቴር", chapters: 10, category: "History" },
+  // OT - Deuterocanon
+  { id: "tobit", nameEn: "Tobit", nameAm: "ጦቢት", chapters: 14, category: "Deuterocanon" },
+  { id: "judith", nameEn: "Judith", nameAm: "ዮዲት", chapters: 16, category: "Deuterocanon" },
+  { id: "mac1", nameEn: "1 Maccabees", nameAm: "1 መቃብያን", chapters: 36, category: "Deuterocanon" },
+  { id: "mac2", nameEn: "2 Maccabees", nameAm: "2 መቃብያን", chapters: 21, category: "Deuterocanon" },
+  { id: "mac3", nameEn: "3 Maccabees", nameAm: "3 መቃብያን", chapters: 20, category: "Deuterocanon" },
+  { id: "enok", nameEn: "Enoch", nameAm: "ሄኖክ", chapters: 108, category: "Deuterocanon" },
+  { id: "kufale", nameEn: "Jubilees", nameAm: "ኩፋሌ", chapters: 50, category: "Deuterocanon" },
+  // Wisdom
+  { id: "job", nameEn: "Job", nameAm: "ኢዮብ", chapters: 42, category: "Wisdom" },
+  { id: "psalms", nameEn: "Psalms", nameAm: "መዝሙረ ዳዊት", chapters: 151, category: "Wisdom" },
+  { id: "pro", nameEn: "Proverbs", nameAm: "መጽሐፈ ምሳሌ", chapters: 31, category: "Wisdom" },
+  { id: "teg", nameEn: "Tegsas", nameAm: "ተግሣጽ", chapters: 31, category: "Wisdom" },
+  { id: "wis", nameEn: "Wisdom of Solomon", nameAm: "ጥበበ ሰሎሞን", chapters: 19, category: "Wisdom" },
+  { id: "ecc", nameEn: "Ecclesiastes", nameAm: "መክብብ", chapters: 12, category: "Wisdom" },
+  { id: "sos", nameEn: "Song of Solomon", nameAm: "ማሕልየ መሓልይ", chapters: 8, category: "Wisdom" },
+  { id: "sirach", nameEn: "Sirach", nameAm: "ሲራክ", chapters: 51, category: "Wisdom" },
+  // Prophets
+  { id: "isa", nameEn: "Isaiah", nameAm: "ኢሳይያስ", chapters: 66, category: "Prophets" },
+  { id: "jer", nameEn: "Jeremiah", nameAm: "ኤርምያስ", chapters: 52, category: "Prophets" },
+  { id: "lam", nameEn: "Lamentations", nameAm: "ሰቆቃወ ኤርምያስ", chapters: 5, category: "Prophets" },
+  { id: "eze", nameEn: "Ezekiel", nameAm: "ሕዝቅኤል", chapters: 48, category: "Prophets" },
+  { id: "dan", nameEn: "Daniel", nameAm: "ዳንኤል", chapters: 14, category: "Prophets" },
+  { id: "hos", nameEn: "Hosea", nameAm: "ሆሴዕ", chapters: 14, category: "Prophets" },
+  { id: "amo", nameEn: "Amos", nameAm: "አሞጽ", chapters: 9, category: "Prophets" },
+  { id: "mic", nameEn: "Micah", nameAm: "ሚክያስ", chapters: 7, category: "Prophets" },
+  { id: "joe", nameEn: "Joel", nameAm: "ኢዩኤል", chapters: 3, category: "Prophets" },
+  { id: "oba", nameEn: "Obadiah", nameAm: "አብድዩ", chapters: 1, category: "Prophets" },
+  { id: "jonah", nameEn: "Jonah", nameAm: "ዮናስ", chapters: 4, category: "Prophets" },
+  { id: "nah", nameEn: "Nahum", nameAm: "ናሆም", chapters: 3, category: "Prophets" },
+  { id: "hab", nameEn: "Habakkuk", nameAm: "ዕንባቆም", chapters: 3, category: "Prophets" },
+  { id: "zep", nameEn: "Zephaniah", nameAm: "ሶፎንያስ", chapters: 3, category: "Prophets" },
+  { id: "hag", nameEn: "Haggai", nameAm: "ሐጌ", chapters: 2, category: "Prophets" },
+  { id: "zec", nameEn: "Zechariah", nameAm: "ዘካርያስ", chapters: 14, category: "Prophets" },
+  { id: "mal", nameEn: "Malachi", nameAm: "ሚልክያስ", chapters: 4, category: "Prophets" },
+  // NT - Gospels
+  { id: "mat", nameEn: "Matthew", nameAm: "ማቴዎስ", chapters: 28, category: "Gospels" },
+  { id: "mar", nameEn: "Mark", nameAm: "ማርቆስ", chapters: 16, category: "Gospels" },
+  { id: "luk", nameEn: "Luke", nameAm: "ሉቃስ", chapters: 24, category: "Gospels" },
+  { id: "joh", nameEn: "John", nameAm: "ዮሐንስ", chapters: 21, category: "Gospels" },
+  // NT - Acts & Epistles
+  { id: "acts", nameEn: "Acts", nameAm: "የሐዋርያት ሥራ", chapters: 28, category: "History" },
+  { id: "rom", nameEn: "Romans", nameAm: "ሮሜ", chapters: 16, category: "Epistles" },
+  { id: "cor1", nameEn: "1 Corinthians", nameAm: "1 ቆሮንቶስ", chapters: 16, category: "Epistles" },
+  { id: "cor2", nameEn: "2 Corinthians", nameAm: "2 ቆሮንቶስ", chapters: 13, category: "Epistles" },
+  { id: "gal", nameEn: "Galatians", nameAm: "ገላትያ", chapters: 6, category: "Epistles" },
+  { id: "eph", nameEn: "Ephesians", nameAm: "ኤፌሶን", chapters: 6, category: "Epistles" },
+  { id: "phi", nameEn: "Philippians", nameAm: "ፊልጵስዩስ", chapters: 4, category: "Epistles" },
+  { id: "col", nameEn: "Colossians", nameAm: "ቆላስይስ", chapters: 4, category: "Epistles" },
+  { id: "the1", nameEn: "1 Thessalonians", nameAm: "1 ተሰሎንቄ", chapters: 5, category: "Epistles" },
+  { id: "the2", nameEn: "2 Thessalonians", nameAm: "2 ተሰሎንቄ", chapters: 3, category: "Epistles" },
+  { id: "tim1", nameEn: "1 Timothy", nameAm: "1 ጢሞቴዎስ", chapters: 6, category: "Epistles" },
+  { id: "tim2", nameEn: "2 Timothy", nameAm: "2 ጢሞቴዎስ", chapters: 4, category: "Epistles" },
+  { id: "tit", nameEn: "Titus", nameAm: "ቲቶ", chapters: 3, category: "Epistles" },
+  { id: "phm", nameEn: "Philemon", nameAm: "ፊልሞና", chapters: 1, category: "Epistles" },
+  { id: "heb", nameEn: "Hebrews", nameAm: "ዕብራውያን", chapters: 13, category: "Epistles" },
+  { id: "pet1", nameEn: "1 Peter", nameAm: "1 ጴጥሮስ", chapters: 5, category: "Epistles" },
+  { id: "pet2", nameEn: "2 Peter", nameAm: "2 ጴጥሮስ", chapters: 3, category: "Epistles" },
+  { id: "joh1", nameEn: "1 John", nameAm: "1 ዮሐንስ", chapters: 5, category: "Epistles" },
+  { id: "joh2", nameEn: "2 John", nameAm: "2 ዮሐንስ", chapters: 1, category: "Epistles" },
+  { id: "joh3", nameEn: "3 John", nameAm: "3 ዮሐንስ", chapters: 1, category: "Epistles" },
+  { id: "jam", nameEn: "James", nameAm: "ያዕቆብ", chapters: 5, category: "Epistles" },
+  { id: "jude", nameEn: "Jude", nameAm: "ይሁዳ", chapters: 1, category: "Epistles" },
+  { id: "rev", nameEn: "Revelation", nameAm: "ዮሐንስ ራእይ", chapters: 22, category: "Prophets" },
+  // Church Order
+  { id: "sir_ts", nameEn: "Sirate Tsion", nameAm: "ሥርዓተ ጽዮን", chapters: 30, category: "Church Order" },
+  { id: "tizaz", nameEn: "Tizaz", nameAm: "ትእዛዝ", chapters: 10, category: "Church Order" },
+  { id: "gitsiw", nameEn: "Gitsiw", nameAm: "ግጽው", chapters: 15, category: "Church Order" },
+  { id: "abtilis", nameEn: "Abtilis", nameAm: "አብጥሊስ", chapters: 12, category: "Church Order" },
+  { id: "dom1", nameEn: "I Dominos", nameAm: "1 ዶሚኖስ", chapters: 10, category: "Church Order" },
+  { id: "dom2", nameEn: "II Dominos", nameAm: "2 ዶሚኖስ", chapters: 10, category: "Church Order" },
+  { id: "epip", nameEn: "Epiphanius", nameAm: "አጲፋንዮስ", chapters: 15, category: "Church Order" },
+  { id: "qalem", nameEn: "Clement", nameAm: "ቀሌምንጦስ", chapters: 20, category: "Church Order" }
+];

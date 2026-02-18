@@ -29,7 +29,8 @@ interface Doc { id: string; title: string; category: string; file_url: string; }
 
 const CHART_COLORS = ["hsl(43,65%,52%)", "hsl(0,75%,27%)", "hsl(150,40%,16%)", "hsl(43,80%,58%)"];
 
-type TabId = "overview" | "members" | "prayers" | "content" | "media" | "events" | "donations" | "wisdom" | "qa";
+// type TabId = "overview" | "members" | "prayers" | "content" | "media" | "events" | "donations" | "wisdom" | "qa";
+type TabId = "overview" | "members" | "prayers" | "content" | "media" | "events" | "donations" | "wisdom" | "qa" | "notifications";
 
 const Admin = () => {
   const navigate = useNavigate();
@@ -94,6 +95,13 @@ const Admin = () => {
   // Live stream
   const [liveUrl, setLiveUrl] = useState("");
   const [liveActive, setLiveActive] = useState(false);
+
+  // Notification form states
+  const [notifTitleEn, setNotifTitleEn] = useState("");
+  const [notifTitleAm, setNotifTitleAm] = useState("");
+  const [notifMsgEn, setNotifMsgEn] = useState("");
+  const [notifMsgAm, setNotifMsgAm] = useState("");
+  const [targetUserId, setTargetUserId] = useState("all");
 
   useEffect(() => { checkAuth(); }, []);
 
@@ -294,6 +302,56 @@ const Admin = () => {
     toast({ title: "Live stream settings saved!" });
   };
 
+
+ const sendNotification = async () => {
+  if (!notifTitleEn.trim() && !notifTitleAm.trim()) {
+    toast({ title: "Title required", variant: "destructive" });
+    return;
+  }
+  setLoading(true);
+
+  try {
+    let userIds: string[] = [];
+    
+    if (targetUserId === "all") {
+      // We pull the user_id from the members we already fetched
+      // Note: Make sure your member interface includes user_id if it's different from id
+      const { data: profiles, error: pError } = await supabase.from("profiles" as any).select("user_id");
+      if (pError) throw pError;
+      userIds = profiles?.map(p => p.user_id) || [];
+    } else {
+      userIds = [targetUserId];
+    }
+
+    if (userIds.length === 0) {
+      toast({ title: "No recipients found", variant: "destructive" });
+      setLoading(false);
+      return;
+    }
+
+    const notifications = userIds.map(uid => ({
+      user_id: uid,
+      title_en: notifTitleEn,
+      title_am: notifTitleAm,
+      message_en: notifMsgEn,
+      message_am: notifMsgAm,
+      is_read: false
+    }));
+
+    const { error } = await supabase.from("notifications" as any).insert(notifications);
+
+    if (error) throw error;
+
+    toast({ title: "Notifications sent successfully!" });
+    setNotifTitleEn(""); setNotifTitleAm(""); setNotifMsgEn(""); setNotifMsgAm("");
+  } catch (error: any) {
+    console.error(error);
+    toast({ title: "Error", description: error.message, variant: "destructive" });
+  } finally {
+    setLoading(false);
+  }
+};
+
   const pendingMembers = members.filter((m) => m.status === "pending").length;
   const pendingPrayers = prayers.filter((p) => p.status === "pending").length;
   const pendingQuestions = questions.filter((q) => q.status === "pending").length;
@@ -319,6 +377,7 @@ const Admin = () => {
     { id: "events", label: t("nav.events"), icon: Calendar, badge: 0 },
     { id: "donations", label: t("nav.donations"), icon: DollarSign, badge: 0 },
     { id: "wisdom", label: "Wisdom", icon: Sparkles, badge: 0 },
+    { id: "notifications", label: "Push Alerts", icon: Bell, badge: 0 },
     { id: "qa", label: t("admin.qa") || "Q&A", icon: HelpCircle, badge: pendingQuestions },
   ];
 
@@ -633,6 +692,56 @@ const Admin = () => {
                 <div><Label className="font-body font-ethiopic">Amharic Reference (ማጣቀሻ)</Label><Input value={wisdomRefAm} onChange={(e) => setWisdomRefAm(e.target.value)} className="mt-1" placeholder="መዝ 23:1" /></div>
                 <Button onClick={updateDailyWisdom}><Sparkles className="w-4 h-4 mr-1" /> Update Verse</Button>
               </CardSection>
+            </motion.div>
+          )}
+
+          {/* NOTIFICATIONS TAB */}
+          {activeTab === "notifications" && (
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6 max-w-3xl">
+              <CardSection title="Send Push Notification">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="md:col-span-2">
+                    <Label className="font-body">Recipient Group</Label>
+                    <select 
+                      value={targetUserId} 
+                      onChange={(e) => setTargetUserId(e.target.value)}
+                      className="mt-1 w-full rounded-md border border-border bg-background px-3 py-2 text-sm"
+                    >
+                      <option value="all">All Registered Members</option>
+                      {members.map(m => (
+                        <option key={m.id} value={m.id}>{m.full_name} ({m.christian_name || 'No Christian Name'})</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>Title (English)</Label>
+                    <Input value={notifTitleEn} onChange={(e) => setNotifTitleEn(e.target.value)} placeholder="Emergency Meeting" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>ርዕስ (Amharic)</Label>
+                    <Input value={notifTitleAm} onChange={(e) => setNotifTitleAm(e.target.value)} className="font-ethiopic" placeholder="አስቸኳይ ስብሰባ" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Message (English)</Label>
+                    <Textarea value={notifMsgEn} onChange={(e) => setNotifMsgEn(e.target.value)} placeholder="Details about the event..." />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>መልዕክት (Amharic)</Label>
+                    <Textarea value={notifMsgAm} onChange={(e) => setNotifMsgAm(e.target.value)} className="font-ethiopic" placeholder="ስለ መርሃ ግብሩ ዝርዝር መረጃ..." />
+                  </div>
+                </div>
+                <Button onClick={sendNotification} className="w-full mt-4" disabled={loading}>
+                  <Send className="w-4 h-4 mr-2" /> Broadcast Notification
+                </Button>
+              </CardSection>
+              
+              <div className="bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900 p-4 rounded-lg flex gap-3">
+                <Sparkles className="text-amber-600 shrink-0" />
+                <p className="text-xs text-amber-800 dark:text-amber-200 font-body">
+                  <strong>Tip:</strong> Notifications sent here will trigger the red badge on the user's bell icon in real-time. Use Amharic fields to ensure all community members can read the alerts.
+                </p>
+              </div>
             </motion.div>
           )}
 

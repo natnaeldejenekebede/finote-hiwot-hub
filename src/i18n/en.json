@@ -290,21 +290,40 @@
     "status": "Status",
     "department": "Department",
     "memberSince": "Member Since",
-    "notRegistered": "You haven't registered as a member yet.",
+    "notRegistered": "You are not registered as a member yet.",
     "registerNow": "Register Now",
     "pending": "Pending Approval",
-    "approved": "Approved Member"
+    "approved": "Approved Member",
+    "bibleProgress": "Bible Reading Progress",
+    "completed": "Completed",
+    "continueReading": "Continue Reading",
+    "chapters": "Chapters"
   },
   "footer": {
-    "description": "Finote Hiwot Sunday School at EOTC Hossana Debre Mihret Cathedral. Nurturing faith through education and fellowship.",
+    "description": "Finote Hiwot Sunday School at EOTC Hosanna Debre Mihret Cathedral. Nurturing faith through education and fellowship.",
     "quickLinks": "Quick Links",
     "special": "Special",
-    "contact": "Contact",
+    "contact": "Contact Us",
     "rights": "All rights reserved."
   },
   "notFound": {
     "title": "404",
     "message": "Oops! Page not found",
-    "returnHome": "Return to Home"
+    "returnHome": "Return Home"
+  },
+  "bible": {
+    "categories": {
+      "all": "All",
+      "law": "Law",
+      "history": "History",
+      "wisdom": "Wisdom",
+      "prophets": "Prophets",
+      "gospels": "Gospels",
+      "epistles": "Epistles",
+      "deuterocanon": "Deuterocanon",
+      "churchOrder": "Church Order"
+    },
+    "readingJourney": "Reading Journey",
+    "chapters": "Chapters"
   }
 }
