@@ -197,6 +197,51 @@ export type Database = {
         }
         Relationships: []
       }
+      kids_corner: {
+        Row: {
+          audio_url: string | null
+          bible_reference: string | null
+          color_class: string | null
+          created_at: string
+          emoji: string | null
+          id: string
+          image_url: string | null
+          order_index: number
+          story_text_am: string
+          story_text_en: string
+          title_am: string
+          title_en: string
+        }
+        Insert: {
+          audio_url?: string | null
+          bible_reference?: string | null
+          color_class?: string | null
+          created_at?: string
+          emoji?: string | null
+          id?: string
+          image_url?: string | null
+          order_index?: number
+          story_text_am?: string
+          story_text_en?: string
+          title_am?: string
+          title_en?: string
+        }
+        Update: {
+          audio_url?: string | null
+          bible_reference?: string | null
+          color_class?: string | null
+          created_at?: string
+          emoji?: string | null
+          id?: string
+          image_url?: string | null
+          order_index?: number
+          story_text_am?: string
+          story_text_en?: string
+          title_am?: string
+          title_en?: string
+        }
+        Relationships: []
+      }
       members: {
         Row: {
           age: number | null
