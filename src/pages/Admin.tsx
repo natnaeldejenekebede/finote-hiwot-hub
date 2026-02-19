@@ -31,12 +31,8 @@ interface KidsStory { id: string; title_en: string; title_am: string; story_text
 
 const CHART_COLORS = ["hsl(43,65%,52%)", "hsl(0,75%,27%)", "hsl(150,40%,16%)", "hsl(43,80%,58%)"];
 
-<<<<<<< HEAD
 // type TabId = "overview" | "members" | "prayers" | "content" | "media" | "events" | "donations" | "wisdom" | "qa";
-type TabId = "overview" | "members" | "prayers" | "content" | "media" | "events" | "donations" | "wisdom" | "qa" | "notifications";
-=======
-type TabId = "overview" | "members" | "prayers" | "content" | "media" | "events" | "donations" | "wisdom" | "qa" | "kids";
->>>>>>> d83eb6f59b98319d0991b716d25fa6312ac70d26
+type TabId = "overview" | "members" | "prayers" | "content" | "media" | "events" | "donations" | "wisdom" | "qa" | "notifications" | "kids";
 
 const Admin = () => {
   const navigate = useNavigate();
@@ -103,15 +99,13 @@ const Admin = () => {
   const [liveUrl, setLiveUrl] = useState("");
   const [liveActive, setLiveActive] = useState(false);
 
-<<<<<<< HEAD
-  // Notification form states
+
   const [notifTitleEn, setNotifTitleEn] = useState("");
   const [notifTitleAm, setNotifTitleAm] = useState("");
   const [notifMsgEn, setNotifMsgEn] = useState("");
   const [notifMsgAm, setNotifMsgAm] = useState("");
   const [targetUserId, setTargetUserId] = useState("all");
-=======
-  // Kids form
+
   const [kidTitleEn, setKidTitleEn] = useState("");
   const [kidTitleAm, setKidTitleAm] = useState("");
   const [kidStoryEn, setKidStoryEn] = useState("");
@@ -120,7 +114,6 @@ const Admin = () => {
   const [kidEmoji, setKidEmoji] = useState("📖");
   const [kidImageUrl, setKidImageUrl] = useState("");
   const [kidAudioUrl, setKidAudioUrl] = useState("");
->>>>>>> d83eb6f59b98319d0991b716d25fa6312ac70d26
 
   useEffect(() => { checkAuth(); }, []);
 
@@ -323,7 +316,6 @@ const Admin = () => {
     toast({ title: "Live stream settings saved!" });
   };
 
-<<<<<<< HEAD
 
  const sendNotification = async () => {
   if (!notifTitleEn.trim() && !notifTitleAm.trim()) {
@@ -373,7 +365,6 @@ const Admin = () => {
     setLoading(false);
   }
 };
-=======
   // Kids CRUD
   const addKidsStory = async () => {
     if (!kidTitleEn.trim() || !kidTitleAm.trim()) { toast({ title: "Both titles required", variant: "destructive" }); return; }
@@ -394,7 +385,6 @@ const Admin = () => {
     setKidsStories((prev) => prev.filter((s) => s.id !== id));
     toast({ title: "Story deleted" });
   };
->>>>>>> d83eb6f59b98319d0991b716d25fa6312ac70d26
 
   const pendingMembers = members.filter((m) => m.status === "pending").length;
   const pendingPrayers = prayers.filter((p) => p.status === "pending").length;
